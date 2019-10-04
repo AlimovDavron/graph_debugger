@@ -1,2 +1,6 @@
 ./core/idea
 ./core/cmake-build-debug
+
+core/\.idea/
+
+core/cmake-build-debug/
