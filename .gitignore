@@ -1,3 +1,5 @@
 core/\.idea/
 
 core/cmake-build-debug/
+
+*.out
