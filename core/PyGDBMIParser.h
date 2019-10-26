@@ -5,9 +5,9 @@
 #ifndef CORE_PYGDBMIPARSER_H
 #define CORE_PYGDBMIPARSER_H
 
-#include "AbstractGDBMIParser.h"
+#include "Abstract_GDB_MI_Output_Parser.h"
 
-class PyGDBMIParser : AbstractGDBMIParser {
+class PyGDBMIParser : AbstractGDBMIOutputParser {
 public:
     std::string parseOutput(std::string GDBMIText){
 

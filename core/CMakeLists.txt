@@ -3,4 +3,4 @@ project(core)
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_executable(core main.cpp GDB_MI_Interactor.cpp GDB_MI_Interactor.h target.cpp AbstractGDBMIParser.h PyGDBMIParser.cpp PyGDBMIParser.cpp PyGDBMIParser.h)
+add_executable(core main.cpp GDB_MI_Communicator.cpp GDB_MI_Communicator.h PyGDBMIParser.cpp PyGDBMIParser.cpp PyGDBMIParser.h Abstract_GDB_MI_Communicator.h Abstract_GDB_MI_Output_Parser.h)
