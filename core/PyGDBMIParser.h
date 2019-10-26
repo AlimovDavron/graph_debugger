@@ -6,12 +6,15 @@
 #define CORE_PYGDBMIPARSER_H
 
 #include "Abstract_GDB_MI_Output_Parser.h"
+#include "json.hpp"
+
+using json = nlohmann::json;
 
 class PyGDBMIParser : AbstractGDBMIOutputParser {
 public:
-    std::string parseOutput(std::string GDBMIText){
+    json parseOutput(std::string GDBMIText) override{
 
-    }
+    };
 };
 
 
