@@ -19,6 +19,7 @@ int main(int argc, char *argv[])
 
     json a = json::parse(parsedResponse.cast<string>());
     cout << a << endl;
+    cout << a["message"] << endl;
     /*
      py::exec(R"(
         from pygdbmi import gdbmiparser

@@ -1,7 +1,6 @@
-core/\.idea/
-
-core/cmake-build-debug/
-
 *.out
+.idea/
 
-core/pybind11/
+cmake-build-debug/
+
+pybind11/
