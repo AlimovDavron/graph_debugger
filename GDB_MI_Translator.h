@@ -6,13 +6,18 @@
 #define CORE_GDB_MI_TRANSLATOR_H
 
 #include "Abstract_GDB_MI_Translator.h"
+#include "PyGDBMIParser.h"
 
 class GDB_MI_Translator : AbstractGDBMITranslator {
+private:
+    const PyGDBMIParser* outputParser = new PyGDBMIParser();
 public:
+    explicit GDB_MI_Translator(FILE* pipe):AbstractGDBMITranslator(pipe){}
     void setBreakpoint(int) override;
+    void setBreakpoint(std::string) override;
     void getNBytesAt(unsigned int) override;
     void getValueOf(std::string) override;
-    void setWatch(int) override;
+    void setWatch(std::string) override;
     void run() override;
     void next() override;
 };

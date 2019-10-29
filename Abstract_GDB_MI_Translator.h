@@ -9,7 +9,7 @@
 #include <string>
 
 class AbstractGDBMITranslator {
-private:
+protected:
     FILE* pipe;
 public:
     explicit AbstractGDBMITranslator(FILE* pipe):pipe(pipe){}
@@ -18,9 +18,10 @@ public:
     }
 
     virtual void setBreakpoint(int) = 0;
+    virtual void setBreakpoint(std::string) = 0;
     virtual void getNBytesAt(unsigned int) = 0;
     virtual void getValueOf(std::string) = 0;
-    virtual void setWatch(int) = 0;
+    virtual void setWatch(std::string) = 0;
     virtual void run() = 0;
     virtual void next() = 0;
 
