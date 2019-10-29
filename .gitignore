@@ -3,3 +3,5 @@ core/\.idea/
 core/cmake-build-debug/
 
 *.out
+
+core/pybind11/
