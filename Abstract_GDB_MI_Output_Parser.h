@@ -10,6 +10,7 @@
 using json = nlohmann::json;
 
 class AbstractGDBMIOutputParser {
+public:
     virtual json parseOutput(std::string) = 0;
 };
 
