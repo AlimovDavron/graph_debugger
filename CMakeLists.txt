@@ -7,6 +7,10 @@ include_directories(${PYTHON_INCLUDE_DIRS})
 
 add_subdirectory(pybind11)
 
+add_executable(target target.cpp)
+configure_file(graph graph COPYONLY)
+file(COPY pygdbmi
+              DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+
 add_executable(core json.hpp main.cpp PyGDBMIParser.cpp PyGDBMIParser.cpp PyGDBMIParser.h Abstract_GDB_MI_Translator.h Abstract_GDB_MI_Output_Parser.h GDB_MI_Translator.cpp GDB_MI_Translator.h)
-# target_link_libraries(core ${PYTHON_LIBRARIES})
 target_link_libraries(core PRIVATE pybind11::embed)
