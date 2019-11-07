@@ -13,7 +13,7 @@ class GDB_MI_Translator : AbstractGDBMITranslator {
 private:
     const AbstractGDBMIOutputParser* outputParser;
 public:
-    explicit GDB_MI_Translator(FILE* pipe):AbstractGDBMITranslator(pipe){}
+    explicit GDB_MI_Translator():AbstractGDBMITranslator(){}
     void setBreakpoint(int) override;
     void setBreakpoint(std::string) override;
     void getNBytesAt(unsigned int) override;

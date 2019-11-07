@@ -19,16 +19,6 @@ int fd;
 
 
 int main(int argc, char** argv) {
-    mknod(FIFO, S_IFIFO | 0666, 0);
 
-    initConnection();
-
-    fprintf(gdb, "file %s\n", argv[1]);
-    fflush(gdb);
-    string t = readChunk();
-    cout << t << endl;
-
-    remove(FIFO);
-    pclose(gdb);
     return 0;
 }

@@ -28,6 +28,6 @@ void GDB_MI_Translator::setWatch(std::string) {
 
 }
 
-void GDB_MI_Translator::setBreakpoint(std::string function) {
-    fprintf(pipe, "break %s", function.c_str());
+void GDB_MI_Translator::setBreakpoint(std::string) {
+
 }
