@@ -42,6 +42,7 @@ protected:
 
 public:
     explicit AbstractGDBMITranslator(){
+        mknod(FIFO_FILE.c_str(), S_IFIFO | 0666, 0);
         gdb = popen(("gdb --interpreter=mi --silent > "+FIFO_FILE).c_str(), "w");
         fileDescriptorFIFO = open(FIFO_FILE.c_str(), O_RDONLY);
         std::string result = readGDBMIResponse();
