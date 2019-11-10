@@ -10,17 +10,17 @@
 #include "PyGDBMIParser.h"
 
 class GDB_MI_Translator : AbstractGDBMITranslator {
-private:
-    const AbstractGDBMIOutputParser* outputParser;
 public:
-    explicit GDB_MI_Translator():AbstractGDBMITranslator(){}
-    void setBreakpoint(int) override;
-    void setBreakpoint(std::string) override;
-    void getNBytesAt(unsigned int) override;
-    void getValueOf(std::string) override;
-    void setWatch(std::string) override;
-    void run() override;
-    void next() override;
+    explicit GDB_MI_Translator(FILE* gdb, int fileDescriptorFIFO):AbstractGDBMITranslator(gdb, fileDescriptorFIFO){
+        outputParser = (AbstractGDBMIOutputParser*)new PyGDBMIParser();
+    }
+    json setBreakpoint(int) override;
+    json setBreakpoint(std::string) override;
+    json getNBytesAt(unsigned int) override;
+    json getValueOf(std::string) override;
+    json setWatch(std::string) override;
+    json run() override;
+    json next() override;
 };
 
 

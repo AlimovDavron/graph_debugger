@@ -40,25 +40,30 @@ protected:
         }
     }
 
+    json runCommand(std::string command){
+        fprintf(gdb, "%s", command.c_str());
+        return outputParser->parseOutput(readGDBMIResponse());
+    }
+
 public:
-    explicit AbstractGDBMITranslator(){
-        mknod(FIFO_FILE.c_str(), S_IFIFO | 0666, 0);
-        gdb = popen(("gdb --interpreter=mi --silent > "+FIFO_FILE).c_str(), "w");
-        fileDescriptorFIFO = open(FIFO_FILE.c_str(), O_RDONLY);
-        std::string result = readGDBMIResponse();
+    explicit AbstractGDBMITranslator(FILE* gdb, int fileDescriptorFIFO) : gdb(gdb), fileDescriptorFIFO(fileDescriptorFIFO){
+        //mknod(FIFO_FILE.c_str(), S_IFIFO | 0666, 0);
+        //gdb = popen(("gdb --interpreter=mi --silent > "+FIFO_FILE).c_str(), "w");
+        //fileDescriptorFIFO = open(FIFO_FILE.c_str(), O_RDONLY);
+        //std::string result = readGDBMIResponse();
     }
 
     void setTarget(const char* path) {
         fprintf(gdb, "file %s\n", path);
     }
 
-    virtual void setBreakpoint(int) = 0;
-    virtual void setBreakpoint(std::string) = 0;
-    virtual void getNBytesAt(unsigned int) = 0;
-    virtual void getValueOf(std::string) = 0;
-    virtual void setWatch(std::string) = 0;
-    virtual void run() = 0;
-    virtual void next() = 0;
+    virtual json setBreakpoint(int) = 0;
+    virtual json setBreakpoint(std::string) = 0;
+    virtual json getNBytesAt(unsigned int) = 0;
+    virtual json getValueOf(std::string) = 0;
+    virtual json setWatch(std::string) = 0;
+    virtual json run() = 0;
+    virtual json next() = 0;
 
     ~AbstractGDBMITranslator(){
         remove(FIFO_FILE.c_str());

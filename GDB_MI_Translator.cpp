@@ -4,30 +4,30 @@
 
 #include "GDB_MI_Translator.h"
 
-void GDB_MI_Translator::setBreakpoint(int line) {
+json GDB_MI_Translator::setBreakpoint(int line) {
+    return runCommand("break " + std::to_string(line));
+}
+
+json GDB_MI_Translator::getNBytesAt(unsigned int) {
 
 }
 
-void GDB_MI_Translator::getNBytesAt(unsigned int) {
+json GDB_MI_Translator::getValueOf(std::string) {
 
 }
 
-void GDB_MI_Translator::getValueOf(std::string) {
+json GDB_MI_Translator::run() {
 
 }
 
-void GDB_MI_Translator::run() {
+json GDB_MI_Translator::next() {
 
 }
 
-void GDB_MI_Translator::next() {
+json GDB_MI_Translator::setWatch(std::string) {
 
 }
 
-void GDB_MI_Translator::setWatch(std::string) {
-
-}
-
-void GDB_MI_Translator::setBreakpoint(std::string) {
+json GDB_MI_Translator::setBreakpoint(std::string) {
 
 }
