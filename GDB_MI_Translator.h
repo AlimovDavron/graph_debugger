@@ -12,8 +12,10 @@
 class GDB_MI_Translator : AbstractGDBMITranslator {
 public:
     explicit GDB_MI_Translator(FILE* gdb, int fileDescriptorFIFO):AbstractGDBMITranslator(gdb, fileDescriptorFIFO){
+        readGDBMIResponse();
         outputParser = (AbstractGDBMIOutputParser*)new PyGDBMIParser();
     }
+    json setTarget(std::string) override;
     json setBreakpoint(int) override;
     json setBreakpoint(std::string) override;
     json getNBytesAt(unsigned int) override;
@@ -21,6 +23,9 @@ public:
     json setWatch(std::string) override;
     json run() override;
     json next() override;
+    json help(){
+        return runCommand("help");
+    }
 };
 
 

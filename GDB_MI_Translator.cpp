@@ -4,6 +4,10 @@
 
 #include "GDB_MI_Translator.h"
 
+json GDB_MI_Translator::setTarget(std::string path) {
+    return runCommand("file " + path);
+}
+
 json GDB_MI_Translator::setBreakpoint(int line) {
     return runCommand("break " + std::to_string(line));
 }
@@ -28,6 +32,6 @@ json GDB_MI_Translator::setWatch(std::string) {
 
 }
 
-json GDB_MI_Translator::setBreakpoint(std::string) {
-
+json GDB_MI_Translator::setBreakpoint(std::string function) {
+    return runCommand("break " + function);
 }

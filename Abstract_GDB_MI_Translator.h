@@ -13,8 +13,6 @@
 #include <fcntl.h>
 #include "Abstract_GDB_MI_Output_Parser.h"
 
-const std::string FIFO_FILE = "graph_debugger";
-
 class AbstractGDBMITranslator {
 protected:
     FILE* gdb;
@@ -41,7 +39,7 @@ protected:
     }
 
     json runCommand(std::string command){
-        fprintf(gdb, "%s", command.c_str());
+        fprintf(gdb, "%s\n", command.c_str());
         return outputParser->parseOutput(readGDBMIResponse());
     }
 
@@ -53,10 +51,7 @@ public:
         //std::string result = readGDBMIResponse();
     }
 
-    void setTarget(const char* path) {
-        fprintf(gdb, "file %s\n", path);
-    }
-
+    virtual json setTarget(std::string) = 0;
     virtual json setBreakpoint(int) = 0;
     virtual json setBreakpoint(std::string) = 0;
     virtual json getNBytesAt(unsigned int) = 0;
@@ -64,11 +59,6 @@ public:
     virtual json setWatch(std::string) = 0;
     virtual json run() = 0;
     virtual json next() = 0;
-
-    ~AbstractGDBMITranslator(){
-        remove(FIFO_FILE.c_str());
-        pclose(gdb);
-    }
 
 };
 
