@@ -21,17 +21,21 @@ json GDB_MI_Translator::getValueOf(std::string) {
 }
 
 json GDB_MI_Translator::run() {
-
+    return runCommand("run");
 }
 
 json GDB_MI_Translator::next() {
-
+    return runCommand("next");
 }
 
-json GDB_MI_Translator::setWatch(std::string) {
-
+json GDB_MI_Translator::setWatch(std::string variable) {
+    return runCommand("watch " + variable);
 }
 
 json GDB_MI_Translator::setBreakpoint(std::string function) {
     return runCommand("break " + function);
+}
+
+json GDB_MI_Translator::gdb_continue() {
+    return runCommand("c");
 }

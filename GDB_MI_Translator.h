@@ -23,9 +23,7 @@ public:
     json setWatch(std::string) override;
     json run() override;
     json next() override;
-    json help(){
-        return runCommand("help");
-    }
+    json gdb_continue() override;
 };
 
 

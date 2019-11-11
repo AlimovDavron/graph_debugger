@@ -40,6 +40,7 @@ protected:
 
     json runCommand(std::string command){
         fprintf(gdb, "%s\n", command.c_str());
+        fflush(gdb);
         return outputParser->parseOutput(readGDBMIResponse());
     }
 
@@ -59,6 +60,7 @@ public:
     virtual json setWatch(std::string) = 0;
     virtual json run() = 0;
     virtual json next() = 0;
+    virtual json gdb_continue() = 0;
 
 };
 

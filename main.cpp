@@ -26,16 +26,10 @@ int main(int argc, char** argv) {
     fd = open(FIFO_FILE.c_str(), O_RDONLY);
 
     auto* translator = new GDB_MI_Translator(gdb, fd);
-    cout << argc << endl;
-    json result = translator->help();
-    cout << result << endl;
-    /*json result = translator->setTarget("target");
-    cout << result << endl;
-    result = translator->setBreakpoint("main");
-    cout << result << endl;*/
-    /*result = translator->run();
-    cout << result << endl;
-    result = translator->setWatch("graph");*/
+    json result = translator->setTarget(argv[1]);
+    translator->setBreakpoint("main");
+    translator->run();
+    result = translator->setWatch("graph");
 
     remove(FIFO_FILE.c_str());
     pclose(gdb);
