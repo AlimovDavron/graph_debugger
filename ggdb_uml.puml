@@ -1,0 +1,77 @@
+@startuml
+
+package GDBMITranslator{
+    package GDBMIOutputParser{
+        Class AbstractGDBMIOutputParser {
+            +json parseOutput(std::string)
+        }
+
+        Class PyGDBMIParser{
+            +json parseOutput(std::string GDBMIText)
+        }
+        AbstractGDBMIOutputParser <|--- PyGDBMIParser
+    }
+
+    Class AbstractGDBMITranslator{
+        -AbstractGDBMIOutputParser* outputParser
+        +explicit AbstractGDBMITranslator()
+        +void setTarget(const char* path)
+        +void setBreakpoint(int)
+        +void setBreakpoint(std::string)
+        +void getNBytesAt(unsigned int)
+        +void getValueOf(std::string)
+        +void setWatch(std::string)
+        +void run()
+        +void next()
+    }
+
+    Class GDB_MI_Translator{
+        +explicit GDB_MI_Translator(FILE* pipe)
+        +void setBreakpoint(int)
+        +void setBreakpoint(std::string)
+        +void getNBytesAt(unsigned int)
+        +void getValueOf(std::string)
+        +void setWatch(std::string)
+        +void run() override
+        +void next() override
+    }
+    AbstractGDBMITranslator <|-- GDB_MI_Translator
+    AbstractGDBMITranslator *-- AbstractGDBMIOutputParser
+
+}
+
+package GraphDumper{
+    Class AbstractGraphDumper{
+
+    }
+
+    Class GraphDumper{
+
+    }
+    AbstractGraphDumper <|-- GraphDumper
+
+}
+
+
+Class GraphDebugger{
+    -AbstractGDBMITranslator* gdbTranslator
+    -AbstractGraphDumper* graphDumper
+    +InitConnection()
+    +DropConnection()
+}
+
+Class ConsoleInterface{
+    -int state
+    -map<string command, function_type function> commands
+    -map<int state, set<string> commands>
+    +dump()
+    +stepDebug()
+}
+
+GraphDebugger *--AbstractGDBMITranslator
+GraphDebugger *--AbstractGraphDumper
+
+
+
+@enduml
+
