@@ -6,7 +6,7 @@
 #define CORE_PYGDBMIPARSER_H
 
 #include "Abstract_GDB_MI_Output_Parser.h"
-#include "json.hpp"
+#include "../../json.hpp"
 #include <pybind11/embed.h>
 #include <string>
 

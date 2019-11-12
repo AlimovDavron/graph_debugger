@@ -1,11 +1,11 @@
-#include <bits/stdc++.h>
+#include <iostream>
 #include "json.hpp"
 #include <pybind11/embed.h>
 #include <unistd.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <fcntl.h>
-#include "GDB_MI_Translator.h"
+#include "src/GDB_Translator/GDB_MI_Translator.h"
 
 namespace py = pybind11;
 

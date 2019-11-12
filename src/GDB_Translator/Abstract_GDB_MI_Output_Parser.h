@@ -6,7 +6,7 @@
 #define CORE_ABSTRACT_GDB_MI_OUTPUT_PARSER_H
 
 #include <string>
-#include "json.hpp"
+#include "../../json.hpp"
 using json = nlohmann::json;
 
 class AbstractGDBMIOutputParser {
