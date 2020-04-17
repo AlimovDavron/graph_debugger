@@ -10,8 +10,16 @@
 #include<vector>
 #include <iostream>
 #include <sstream>
+#include <pybind11/embed.h>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <fcntl.h>
+#include "../../json.hpp"
+#include "../Graph_Debugger/Graph_Debugger.h"
 
 using namespace std;
+using json = nlohmann::json;
 
 
 class AbstractCommandHandler {
@@ -85,6 +93,16 @@ private:
     void parse_args(istringstream& inputStream) {}
 };
 
+class SetTargetCommandHandler : AbstractCommandHandler {
+public:
+    void execute(istringstream& inputStream) override {
+        cout << "set command \n";
+    }
+
+private:
+    void parse_args(istringstream& inputStream) {}
+};
+
 
 class SetWatchCommandHandler : AbstractCommandHandler {
 public:
@@ -107,20 +125,23 @@ public:
 
 class ConsoleInterface {
 public:
-    ConsoleInterface() {
+    ConsoleInterface(int FIFOFileDescriptor, FILE *gdb) {
         commandsMap = {
                 {"exit",       (AbstractCommandHandler*) new ExitCommandHandler},
                 {"dump",       (AbstractCommandHandler*) new DumpCommandHandler},
                 {"step_debug", (AbstractCommandHandler*) new StepDebugCommandHandler},
                 {"next",       (AbstractCommandHandler*) new DebugNextCommandHandler},
                 {"set_watch",  (AbstractCommandHandler*) new SetWatchCommandHandler},
+                {"set_target", (AbstractCommandHandler*) new SetTargetCommandHandler}
         };
+        graphDebugger = new GraphDebugger(FIFOFileDescriptor, gdb);
     }
 
-    void run();
+    [[noreturn]] void run();
 
 private:
     map<string, AbstractCommandHandler*> commandsMap;
+    GraphDebugger* graphDebugger;
 };
 
 #endif //CORE_CONSOLEINTERFACE_H

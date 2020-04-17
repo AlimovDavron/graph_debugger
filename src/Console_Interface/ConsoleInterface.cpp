@@ -1,6 +1,8 @@
 #include "ConsoleInterface.h"
 
-void ConsoleInterface::run() {
+
+[[noreturn]] void ConsoleInterface::run() {
+
     while (true) {
         string command;
         cin >> command;
@@ -9,4 +11,5 @@ void ConsoleInterface::run() {
         istringstream is(params);
         commandsMap[command]->execute(is);
     }
+
 }

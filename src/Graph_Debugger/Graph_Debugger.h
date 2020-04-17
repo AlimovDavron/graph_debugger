@@ -6,20 +6,15 @@
 #define CORE_GRAPH_DEBUGGER_H
 
 #include <iostream>
+#include "../GDB_Translator/GDB_MI_Translator.h"
 
 class GraphDebugger {
-protected:
-    int FIFOFileDescriptor;
-    FILE *gdb;
-    GraphDebugger(){};
-    GraphDebugger* instance = nullptr;
-public:
-    GraphDebugger* getInstance(){
-        if(instance == nullptr){
-            instance = new GraphDebugger();
-        }
+private:
+    GDB_MI_Translator* translator;
 
-        return instance;
+public:
+    GraphDebugger(int FIFOFileDescriptor, FILE *gdb){
+        translator = new GDB_MI_Translator(gdb, FIFOFileDescriptor);
     }
 
     void dump();
