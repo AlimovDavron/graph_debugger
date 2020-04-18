@@ -24,6 +24,7 @@ int main(int argc, char** argv) {
     auto* interface = new ConsoleInterface(fd, gdb);
     interface->run();
 
+    // todo: add following lines to exit command of interface
     remove(FIFO_FILE.c_str());
     pclose(gdb);
 

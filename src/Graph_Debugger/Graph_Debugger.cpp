@@ -8,3 +8,11 @@ void GraphDebugger::dump() {
 
 }
 
+void GraphDebugger::setTarget(std::string target) {
+    cout << this->translator->runCommand("file " + target + "\n") << endl;
+}
+
+void GraphDebugger::run() {
+
+}
+

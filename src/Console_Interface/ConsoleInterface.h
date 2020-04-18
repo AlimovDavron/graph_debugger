@@ -23,7 +23,10 @@ using json = nlohmann::json;
 
 
 class AbstractCommandHandler {
+protected:
+    GraphDebugger *graphDebugger;
 public:
+    explicit AbstractCommandHandler(GraphDebugger* graphDebugger): graphDebugger(graphDebugger) {}
     virtual void execute(istringstream& inputStream) = 0;
 
     void operator()(istringstream& inputStream) {
@@ -35,6 +38,7 @@ public:
 
 class DumpCommandHandler : AbstractCommandHandler {
 public:
+    explicit DumpCommandHandler(GraphDebugger* graphDebugger) : AbstractCommandHandler(graphDebugger) {}
     void execute(istringstream& inputStream) override {
         cout << "dumping \n";
         Input input = parse_args(inputStream);
@@ -60,6 +64,7 @@ private:
 
 class StepDebugCommandHandler : AbstractCommandHandler {
 public:
+    explicit StepDebugCommandHandler(GraphDebugger* graphDebugger) : AbstractCommandHandler(graphDebugger) {}
     void execute(istringstream& inputStream) override {
         cout << "dumping \n";
         Input input = parse_args(inputStream);
@@ -85,6 +90,7 @@ private:
 
 class DebugNextCommandHandler : AbstractCommandHandler {
 public:
+    explicit DebugNextCommandHandler(GraphDebugger* graphDebugger) : AbstractCommandHandler(graphDebugger) {}
     void execute(istringstream& inputStream) override {
         cout << "next command \n";
     }
@@ -95,8 +101,22 @@ private:
 
 class SetTargetCommandHandler : AbstractCommandHandler {
 public:
+    explicit SetTargetCommandHandler(GraphDebugger* graphDebugger) : AbstractCommandHandler(graphDebugger) {}
     void execute(istringstream& inputStream) override {
-        cout << "set command \n";
+        std::string target;
+        inputStream >> target;
+        this->graphDebugger->setTarget(target);
+    }
+
+private:
+    void parse_args(istringstream& inputStream) {}
+};
+
+class RunCommandHandler : AbstractCommandHandler {
+public:
+    explicit RunCommandHandler(GraphDebugger* graphDebugger) : AbstractCommandHandler(graphDebugger) {}
+    void execute(istringstream& inputStream) override {
+        this->graphDebugger->run();
     }
 
 private:
@@ -106,6 +126,7 @@ private:
 
 class SetWatchCommandHandler : AbstractCommandHandler {
 public:
+    explicit SetWatchCommandHandler(GraphDebugger* graphDebugger) : AbstractCommandHandler(graphDebugger) {}
     void execute(istringstream& inputStream) override {
         cout << "step debugging \n";
     }
@@ -117,6 +138,7 @@ private:
 
 class ExitCommandHandler : AbstractCommandHandler {
 public:
+    explicit ExitCommandHandler(GraphDebugger* graphDebugger) : AbstractCommandHandler(graphDebugger) {}
     void execute(istringstream& input) override {
         exit(0);
     }
@@ -126,22 +148,22 @@ public:
 class ConsoleInterface {
 public:
     ConsoleInterface(int FIFOFileDescriptor, FILE *gdb) {
+        auto* graphDebugger = new GraphDebugger(FIFOFileDescriptor, gdb);
         commandsMap = {
-                {"exit",       (AbstractCommandHandler*) new ExitCommandHandler},
-                {"dump",       (AbstractCommandHandler*) new DumpCommandHandler},
-                {"step_debug", (AbstractCommandHandler*) new StepDebugCommandHandler},
-                {"next",       (AbstractCommandHandler*) new DebugNextCommandHandler},
-                {"set_watch",  (AbstractCommandHandler*) new SetWatchCommandHandler},
-                {"set_target", (AbstractCommandHandler*) new SetTargetCommandHandler}
+                {"exit",       (AbstractCommandHandler*) new ExitCommandHandler(graphDebugger)},
+                {"dump",       (AbstractCommandHandler*) new DumpCommandHandler(graphDebugger)},
+                {"step_debug", (AbstractCommandHandler*) new StepDebugCommandHandler(graphDebugger)},
+                {"next",       (AbstractCommandHandler*) new DebugNextCommandHandler(graphDebugger)},
+                {"set_watch",  (AbstractCommandHandler*) new SetWatchCommandHandler(graphDebugger)},
+                {"set_target", (AbstractCommandHandler*) new SetTargetCommandHandler(graphDebugger)},
+                {"run", (AbstractCommandHandler*) new RunCommandHandler(graphDebugger)}
         };
-        graphDebugger = new GraphDebugger(FIFOFileDescriptor, gdb);
     }
 
     [[noreturn]] void run();
 
 private:
     map<string, AbstractCommandHandler*> commandsMap;
-    GraphDebugger* graphDebugger;
 };
 
 #endif //CORE_CONSOLEINTERFACE_H

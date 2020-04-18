@@ -11,12 +11,16 @@
 class GraphDebugger {
 private:
     GDB_MI_Translator* translator;
+    FILE* gdb;
 
 public:
     GraphDebugger(int FIFOFileDescriptor, FILE *gdb){
         translator = new GDB_MI_Translator(gdb, FIFOFileDescriptor);
+        this->gdb = gdb;
     }
 
+    void setTarget(std::string target);
+    void run();
     void dump();
 };
 
