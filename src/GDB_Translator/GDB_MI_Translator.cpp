@@ -17,7 +17,7 @@ std::string GDB_MI_Translator::flushGDBMIResponse() {
         }
 }
 
-std::vector<json> GDB_MI_Translator::readGDBMIResponse(std::string hash) {
+std::vector<json> GDB_MI_Translator::readGDBMIResponse(int hash) {
     std::vector<json> actions;
     int size;
     char buf[4096];
@@ -63,9 +63,9 @@ std::vector<std::string> GDB_MI_Translator::split(std::string a, std::string del
 
 json GDB_MI_Translator::runCommand(std::string command) {
     // TODO: generate hash
-    std::string hash = "22";
+    int hash = 22;
 
-    fprintf(gdb, "%s %s\n", hash.c_str(), command.c_str());
+    fprintf(gdb, "%s %s", std::to_string(hash).c_str(), command.c_str());
     fflush(gdb);
 
     std::vector<json> responseActions = readGDBMIResponse(hash);

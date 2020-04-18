@@ -31,7 +31,7 @@ public:
 
     std::string flushGDBMIResponse();
 
-    std::vector<json> readGDBMIResponse(std::string hash);
+    std::vector<json> readGDBMIResponse(int hash);
 
     static std::vector<std::string> split(std::string a, std::string delimiter);
 
