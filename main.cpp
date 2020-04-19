@@ -15,6 +15,7 @@ const std::string FIFO_FILE = "graph_debugger";
 
 int main(int argc, char** argv) {
 
+    srand( (unsigned)time(NULL) );
     mknod(FIFO_FILE.c_str(), S_IFIFO | 0666, 0);
     FILE *gdb;
     int fd;

@@ -9,7 +9,10 @@ void GraphDebugger::dump() {
 }
 
 void GraphDebugger::setTarget(std::string target) {
-    cout << this->translator->runCommand("file " + target + "\n") << endl;
+    std::vector<json> messages = this->translator->executeCommand("file " + target + "\n", 'h');
+    for(const auto& u: messages){
+        cout << u << endl;
+    }
 }
 
 void GraphDebugger::run() {

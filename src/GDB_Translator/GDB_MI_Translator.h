@@ -31,11 +31,12 @@ public:
 
     std::string flushGDBMIResponse();
 
-    std::vector<json> readGDBMIResponse(int hash);
+    std::vector<json> readGDMIResponseUntilHash(int hash);
+    std::vector<json> readGDMIResponseUntilStop();
 
     static std::vector<std::string> split(std::string a, std::string delimiter);
 
-    json runCommand(std::string command);
+    std::vector<json> executeCommand(std::string command, char mode);
 };
 
 
