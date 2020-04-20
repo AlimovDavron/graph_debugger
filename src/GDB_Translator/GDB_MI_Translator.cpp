@@ -18,7 +18,7 @@ std::string GDB_MI_Translator::flushGDBMIResponse() {
 }
 
 std::vector<json> GDB_MI_Translator::readGDMIResponseUntilHash(int hash) {
-    std::vector<json> messages;
+    std::vector<json> outputs;
     int size;
     char buf[4096];
     std::string response;
@@ -28,31 +28,31 @@ std::vector<json> GDB_MI_Translator::readGDMIResponseUntilHash(int hash) {
 
         std::size_t pos = response.find("(gdb) \n");
         while (pos != std::string::npos){
-            std::vector<std::string> outputs = split(response.substr(0, pos),
+            std::vector<std::string> records = split(response.substr(0, pos),
                                                      "\n");
 
             response = response.substr(pos+7);
             pos = response.find("(gdb) \n");
 
             bool foundHash = false;
-            for(const auto& u: outputs){
-                json message = outputParser->parseOutput(u);
-                messages.push_back(message);
-                cout << message << endl;
-                if(message["token"] == hash){
+            for(const auto& record: records){
+                json parsedRecord = outputParser->parseOutput(record);
+                outputs.push_back(parsedRecord);
+                cout << parsedRecord << endl;
+                if(parsedRecord["token"] == hash){
                     foundHash = true;
                 }
             }
 
             if(foundHash) {
-                return messages;
+                return outputs;
             }
         }
     }
 }
 
 std::vector<json> GDB_MI_Translator::readGDMIResponseUntilStop() {
-    std::vector<json> responses;
+    std::vector<json> outputs;
     int size;
     char buf[4096];
     std::string response;
@@ -62,23 +62,23 @@ std::vector<json> GDB_MI_Translator::readGDMIResponseUntilStop() {
 
         std::size_t pos = response.find("(gdb) \n");
         while (pos != std::string::npos){
-            std::vector<std::string> outputs = split(response.substr(0, pos),
+            std::vector<std::string> records = split(response.substr(0, pos),
                                                      "\n");
 
             response = response.substr(pos+7);
             pos = response.find("(gdb) \n");
 
             bool foundStopTypeMessage = false;
-            for(const auto& u: outputs){
-                json response = outputParser->parseOutput(u);
-                responses.push_back(response);
-                if(response["type"] == "notify" && response["message"] == "stopped"){
+            for(const auto& record: records){
+                json parsedRecord = outputParser->parseOutput(record);
+                outputs.push_back(parsedRecord);
+                if(parsedRecord["type"] == "notify" && parsedRecord["message"] == "stopped"){
                     foundStopTypeMessage = true;
                 }
             }
 
             if(foundStopTypeMessage){
-                return responses;
+                return outputs;
             }
         }
     }
