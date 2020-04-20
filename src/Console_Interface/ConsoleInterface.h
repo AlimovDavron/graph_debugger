@@ -104,6 +104,19 @@ private:
     void parse_args(istringstream& inputStream) {}
 };
 
+class SetGraphCommandHandler : AbstractCommandHandler {
+public:
+    explicit SetGraphCommandHandler(GraphDebugger* graphDebugger) : AbstractCommandHandler(graphDebugger) {}
+    void execute(istringstream& inputStream) override {
+        std::string graph;
+        inputStream >> graph;
+        this->graphDebugger->setGraph(graph);
+    }
+
+private:
+    void parse_args(istringstream& inputStream) {}
+};
+
 
 class SetWatchCommandHandler : AbstractCommandHandler {
 public:
@@ -121,7 +134,7 @@ class ExitCommandHandler : AbstractCommandHandler {
 public:
     explicit ExitCommandHandler(GraphDebugger* graphDebugger) : AbstractCommandHandler(graphDebugger) {}
     void execute(istringstream& input) override {
-        exit(0);
+        throw ExitException("user interrupt");
     }
 };
 
@@ -135,11 +148,13 @@ public:
         commandsMap = {
                 {"exit",       (AbstractCommandHandler*) new ExitCommandHandler(graphDebugger)},
                 {"dump",       (AbstractCommandHandler*) new DumpCommandHandler(graphDebugger)},
-                {"continue", (AbstractCommandHandler*) new ContinueCommandHandler(graphDebugger)},
+                {"continue",   (AbstractCommandHandler*) new ContinueCommandHandler(graphDebugger)},
                 {"next",       (AbstractCommandHandler*) new NextCommandHandler(graphDebugger)},
                 {"set_watch",  (AbstractCommandHandler*) new SetWatchCommandHandler(graphDebugger)},
                 {"set_target", (AbstractCommandHandler*) new SetTargetCommandHandler(graphDebugger)},
-                {"start",      (AbstractCommandHandler*) new StartCommandHandler(graphDebugger)}
+                {"start",      (AbstractCommandHandler*) new StartCommandHandler(graphDebugger)},
+                {"set_graph",  (AbstractCommandHandler*) new SetGraphCommandHandler(graphDebugger)},
+                //{"dump",       (AbstractCommandHandler*) new DumpCommandHandler(graphDebugger)},
         };
     }
 

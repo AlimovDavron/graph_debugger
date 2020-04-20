@@ -10,7 +10,11 @@
             string params;
             getline(cin, params);
             istringstream is(params);
-            commandsMap[command]->execute(is);
+            if(commandsMap.count(command)) {
+                commandsMap[command]->execute(is);
+            } else {
+                cout << "Undefined command" << endl;
+            }
 
         } catch (ExitException &exception) {
             cout << exception.what() << endl;

@@ -20,11 +20,12 @@ public:
         this->gdb = gdb;
     }
 
-    void setTarget(std::string target);
+    void setTarget(const std::string& target);
     void start();
     void dump();
     void continue_();
     void next();
+    void setGraph(const std::string&);
 };
 
 #endif //CORE_GRAPH_DEBUGGER_H
