@@ -11,8 +11,6 @@ namespace py = pybind11;
 
 using namespace std;
 
-const std::string FIFO_FILE = "graph_debugger";
-
 int main(int argc, char** argv) {
 
     srand( (unsigned)time(NULL) );
@@ -24,10 +22,4 @@ int main(int argc, char** argv) {
 
     auto* interface = new ConsoleInterface(fd, gdb);
     interface->run();
-
-    // todo: add following lines to exit command of interface
-    remove(FIFO_FILE.c_str());
-    pclose(gdb);
-
-    return 0;
 }

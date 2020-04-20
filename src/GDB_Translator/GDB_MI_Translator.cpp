@@ -38,6 +38,7 @@ std::vector<json> GDB_MI_Translator::readGDMIResponseUntilHash(int hash) {
             for(const auto& u: outputs){
                 json message = outputParser->parseOutput(u);
                 messages.push_back(message);
+                cout << message << endl;
                 if(message["token"] == hash){
                     foundHash = true;
                 }
@@ -51,7 +52,7 @@ std::vector<json> GDB_MI_Translator::readGDMIResponseUntilHash(int hash) {
 }
 
 std::vector<json> GDB_MI_Translator::readGDMIResponseUntilStop() {
-    std::vector<json> messages;
+    std::vector<json> responses;
     int size;
     char buf[4096];
     std::string response;
@@ -69,15 +70,15 @@ std::vector<json> GDB_MI_Translator::readGDMIResponseUntilStop() {
 
             bool foundStopTypeMessage = false;
             for(const auto& u: outputs){
-                json message = outputParser->parseOutput(u);
-                messages.push_back(message);
-                if(message["type"] == "stopped"){
+                json response = outputParser->parseOutput(u);
+                responses.push_back(response);
+                if(response["type"] == "notify" && response["message"] == "stopped"){
                     foundStopTypeMessage = true;
                 }
             }
 
             if(foundStopTypeMessage){
-                return messages;
+                return responses;
             }
         }
     }
@@ -93,7 +94,6 @@ std::vector<std::string> GDB_MI_Translator::split(std::string a, std::string del
         result.push_back(token);
         a.erase(0, pos + delimiter.length());
     }
-    //result.push_back(token);
     return result;
 }
 
@@ -101,12 +101,12 @@ std::vector<json> GDB_MI_Translator::executeCommand(std::string command, char mo
     if(mode == 'h') {
         int hash = rand() % 10000;
 
-        fprintf(gdb, "%s %s", std::to_string(hash).c_str(), command.c_str());
+        fprintf(gdb, "%s %s\n", std::to_string(hash).c_str(), command.c_str());
         fflush(gdb);
 
         return readGDMIResponseUntilHash(hash);
     } else if(mode == 's'){
-        fprintf(gdb, "%s", command.c_str());
+        fprintf(gdb, "%s\n", command.c_str());
         fflush(gdb);
 
         return readGDMIResponseUntilStop();

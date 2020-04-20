@@ -9,13 +9,42 @@ void GraphDebugger::dump() {
 }
 
 void GraphDebugger::setTarget(std::string target) {
-    std::vector<json> messages = this->translator->executeCommand("file " + target + "\n", 'h');
+    std::vector<json> messages = this->translator->executeCommand("file " + target, 'h');
     for(const auto& u: messages){
         cout << u << endl;
     }
 }
 
-void GraphDebugger::run() {
+void GraphDebugger::start() {
+    std::vector<json> responses = this->translator->executeCommand("start", 's');
+    for(const auto& response: responses){
+        if(response["type"] == "notify" && response["message"] == "stopped") {
+            if(response["payload"]["reason"] == "exited-normally")
+                throw ExitException("success");
+        }
+        cout << response << endl;
+    }
+}
 
+void GraphDebugger::continue_() {
+    std::vector<json> responses = this->translator->executeCommand("continue", 's');
+    for(const auto& response: responses){
+        if(response["type"] == "notify" && response["message"] == "stopped") {
+            if(response["payload"]["reason"] == "exited-normally")
+                throw ExitException("success");
+        }
+        cout << response << endl;
+    }
+}
+
+void GraphDebugger::next() {
+    std::vector<json> responses = this->translator->executeCommand("next", 's');
+    for(const auto& response: responses){
+        if(response["type"] == "notify" && response["message"] == "stopped") {
+            if(response["payload"]["reason"] == "exited-normally")
+                throw ExitException("success");
+        }
+        cout << response << endl;
+    }
 }
 

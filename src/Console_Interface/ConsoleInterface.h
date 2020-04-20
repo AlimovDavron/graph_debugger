@@ -17,6 +17,7 @@
 #include <fcntl.h>
 #include "../../json.hpp"
 #include "../Graph_Debugger/Graph_Debugger.h"
+#include "../Graph_Debugger/GraphDebuggerExceptions.h"
 
 using namespace std;
 using json = nlohmann::json;
@@ -62,41 +63,21 @@ private:
     }
 };
 
-class StepDebugCommandHandler : AbstractCommandHandler {
+class ContinueCommandHandler : AbstractCommandHandler {
 public:
-    explicit StepDebugCommandHandler(GraphDebugger* graphDebugger) : AbstractCommandHandler(graphDebugger) {}
+    explicit ContinueCommandHandler(GraphDebugger* graphDebugger) : AbstractCommandHandler(graphDebugger) {}
     void execute(istringstream& inputStream) override {
-        cout << "dumping \n";
-        Input input = parse_args(inputStream);
-        cout << input.path_to_executable_file << " " << input.path_to_graph_data << "\n";
-    }
-
-private:
-    struct Input {
-    public:
-        Input(string path_to_executable_file, string path_to_graph_data) :
-                path_to_executable_file(path_to_executable_file), path_to_graph_data(path_to_graph_data) {}
-
-        string path_to_executable_file;
-        string path_to_graph_data;
-    };
-
-    Input parse_args(istringstream& inputStream) {
-        string exc_file, path_to_graph_data;
-        inputStream >> exc_file >> path_to_graph_data;
-        return Input(exc_file, path_to_graph_data);
+        this->graphDebugger->continue_();
     }
 };
 
-class DebugNextCommandHandler : AbstractCommandHandler {
+class NextCommandHandler : AbstractCommandHandler {
 public:
-    explicit DebugNextCommandHandler(GraphDebugger* graphDebugger) : AbstractCommandHandler(graphDebugger) {}
+    explicit NextCommandHandler(GraphDebugger* graphDebugger) : AbstractCommandHandler(graphDebugger) {}
     void execute(istringstream& inputStream) override {
-        cout << "next command \n";
+        this->graphDebugger->next();
     }
 
-private:
-    void parse_args(istringstream& inputStream) {}
 };
 
 class SetTargetCommandHandler : AbstractCommandHandler {
@@ -112,11 +93,11 @@ private:
     void parse_args(istringstream& inputStream) {}
 };
 
-class RunCommandHandler : AbstractCommandHandler {
+class StartCommandHandler : AbstractCommandHandler {
 public:
-    explicit RunCommandHandler(GraphDebugger* graphDebugger) : AbstractCommandHandler(graphDebugger) {}
+    explicit StartCommandHandler(GraphDebugger* graphDebugger) : AbstractCommandHandler(graphDebugger) {}
     void execute(istringstream& inputStream) override {
-        this->graphDebugger->run();
+        this->graphDebugger->start();
     }
 
 private:
@@ -144,26 +125,31 @@ public:
     }
 };
 
+const std::string FIFO_FILE = "graph_debugger";
 
 class ConsoleInterface {
 public:
     ConsoleInterface(int FIFOFileDescriptor, FILE *gdb) {
+        this->gdb = gdb;
         auto* graphDebugger = new GraphDebugger(FIFOFileDescriptor, gdb);
         commandsMap = {
                 {"exit",       (AbstractCommandHandler*) new ExitCommandHandler(graphDebugger)},
                 {"dump",       (AbstractCommandHandler*) new DumpCommandHandler(graphDebugger)},
-                {"step_debug", (AbstractCommandHandler*) new StepDebugCommandHandler(graphDebugger)},
-                {"next",       (AbstractCommandHandler*) new DebugNextCommandHandler(graphDebugger)},
+                {"continue", (AbstractCommandHandler*) new ContinueCommandHandler(graphDebugger)},
+                {"next",       (AbstractCommandHandler*) new NextCommandHandler(graphDebugger)},
                 {"set_watch",  (AbstractCommandHandler*) new SetWatchCommandHandler(graphDebugger)},
                 {"set_target", (AbstractCommandHandler*) new SetTargetCommandHandler(graphDebugger)},
-                {"run", (AbstractCommandHandler*) new RunCommandHandler(graphDebugger)}
+                {"start",      (AbstractCommandHandler*) new StartCommandHandler(graphDebugger)}
         };
     }
 
     [[noreturn]] void run();
 
+    void stop();
+
 private:
     map<string, AbstractCommandHandler*> commandsMap;
+    FILE *gdb;
 };
 
 #endif //CORE_CONSOLEINTERFACE_H

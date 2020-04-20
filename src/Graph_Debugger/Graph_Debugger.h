@@ -7,6 +7,7 @@
 
 #include <iostream>
 #include "../GDB_Translator/GDB_MI_Translator.h"
+#include "GraphDebuggerExceptions.h"
 
 class GraphDebugger {
 private:
@@ -20,8 +21,10 @@ public:
     }
 
     void setTarget(std::string target);
-    void run();
+    void start();
     void dump();
+    void continue_();
+    void next();
 };
 
 #endif //CORE_GRAPH_DEBUGGER_H
