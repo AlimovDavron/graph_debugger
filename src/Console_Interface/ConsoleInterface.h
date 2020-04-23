@@ -150,10 +150,10 @@ public:
                 {"dump",       (AbstractCommandHandler*) new DumpCommandHandler(graphDebugger)},
                 {"continue",   (AbstractCommandHandler*) new ContinueCommandHandler(graphDebugger)},
                 {"next",       (AbstractCommandHandler*) new NextCommandHandler(graphDebugger)},
-                {"set_watch",  (AbstractCommandHandler*) new SetWatchCommandHandler(graphDebugger)},
-                {"set_target", (AbstractCommandHandler*) new SetTargetCommandHandler(graphDebugger)},
+                {"set-watch",  (AbstractCommandHandler*) new SetWatchCommandHandler(graphDebugger)},
+                {"set-target", (AbstractCommandHandler*) new SetTargetCommandHandler(graphDebugger)},
                 {"start",      (AbstractCommandHandler*) new StartCommandHandler(graphDebugger)},
-                {"set_graph",  (AbstractCommandHandler*) new SetGraphCommandHandler(graphDebugger)},
+                {"set-graph",  (AbstractCommandHandler*) new SetGraphCommandHandler(graphDebugger)},
                 //{"dump",       (AbstractCommandHandler*) new DumpCommandHandler(graphDebugger)},
         };
     }

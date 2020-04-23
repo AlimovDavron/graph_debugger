@@ -34,7 +34,7 @@ public:
     std::vector<json> readGDMIResponseUntilHash(int hash);
     std::vector<json> readGDMIResponseUntilStop();
 
-    static std::vector<std::string> split(std::string a, std::string delimiter);
+    static std::vector<std::string> split(std::string a, const std::string& delimiter);
 
     std::vector<json> executeCommand(std::string command, char mode);
 };

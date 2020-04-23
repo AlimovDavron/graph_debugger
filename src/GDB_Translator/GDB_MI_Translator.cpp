@@ -38,7 +38,6 @@ std::vector<json> GDB_MI_Translator::readGDMIResponseUntilHash(int hash) {
             for(const auto& record: records){
                 json parsedRecord = outputParser->parseOutput(record);
                 outputs.push_back(parsedRecord);
-                cout << parsedRecord << endl;
                 if(parsedRecord["token"] == hash){
                     foundHash = true;
                 }
@@ -84,7 +83,7 @@ std::vector<json> GDB_MI_Translator::readGDMIResponseUntilStop() {
     }
 }
 
-std::vector<std::string> GDB_MI_Translator::split(std::string a, std::string delimiter) {
+std::vector<std::string> GDB_MI_Translator::split(std::string a, const std::string& delimiter) {
     std::vector<std::string> result;
 
     size_t pos = 0;

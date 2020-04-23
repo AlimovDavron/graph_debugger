@@ -13,6 +13,8 @@ class GraphDebugger {
 private:
     GDB_MI_Translator* translator;
     FILE* gdb;
+    bool isVariableInLocals(std::string variableName);
+    std::string getAddressOfVariable(std::string variableName);
 
 public:
     GraphDebugger(int FIFOFileDescriptor, FILE *gdb){
@@ -25,7 +27,7 @@ public:
     void dump();
     void continue_();
     void next();
-    void setGraph(const std::string&);
+    void setGraph(std::string);
 };
 
 #endif //CORE_GRAPH_DEBUGGER_H
