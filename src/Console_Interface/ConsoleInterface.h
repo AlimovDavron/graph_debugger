@@ -109,8 +109,22 @@ public:
     explicit SetGraphCommandHandler(GraphDebugger* graphDebugger) : AbstractCommandHandler(graphDebugger) {}
     void execute(istringstream& inputStream) override {
         std::string graph;
-        inputStream >> graph;
-        this->graphDebugger->setGraph(graph);
+        int numberOfVertices;
+        inputStream >> graph >> numberOfVertices;
+        this->graphDebugger->setGraph(graph, numberOfVertices);
+    }
+
+private:
+    void parse_args(istringstream& inputStream) {}
+};
+
+class SetBkptCommandHandler : AbstractCommandHandler {
+public:
+    explicit SetBkptCommandHandler(GraphDebugger* graphDebugger) : AbstractCommandHandler(graphDebugger) {}
+    void execute(istringstream& inputStream) override {
+        int lineNumber;
+        inputStream >> lineNumber;
+        this->graphDebugger->setBkpt(lineNumber);
     }
 
 private:
@@ -154,6 +168,7 @@ public:
                 {"set-target", (AbstractCommandHandler*) new SetTargetCommandHandler(graphDebugger)},
                 {"start",      (AbstractCommandHandler*) new StartCommandHandler(graphDebugger)},
                 {"set-graph",  (AbstractCommandHandler*) new SetGraphCommandHandler(graphDebugger)},
+                {"set-bkpt", (AbstractCommandHandler*) new SetBkptCommandHandler(graphDebugger)},
                 //{"dump",       (AbstractCommandHandler*) new DumpCommandHandler(graphDebugger)},
         };
     }

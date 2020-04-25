@@ -97,11 +97,23 @@ std::string GraphDebugger::getAddressOfVariable(std::string variableName) {
     }
 }
 
-void GraphDebugger::setGraph(std::string graph) {
-    if(isVariableInLocals(graph)) {
 
-        std::string address = getAddressOfVariable(graph);
-        cout << "ADDRESS:" << address << endl;
+void GraphDebugger::setGraph(std::string graph, int n) {
+    if(isVariableInLocals(graph)) {
+        this->graphVariableName = graph;
+        this->numberOfVertices = n;
+
+        std::string addressOfPointerToAdjacencyMatrix = getAddressOfVariable(graph);
+        std::vector<std::string> pointersToAdjacencyMatrixLines =
+                getValuesByAddress(getValueByAddress(addressOfPointerToAdjacencyMatrix), numberOfVertices);
+
+        for(const auto& pointerToLine: pointersToAdjacencyMatrixLines){
+            std::vector<std::string> valuesOfLine = getValuesByAddress(getValueByAddress(pointerToLine), numberOfVertices, "w");
+            for(const auto& value: valuesOfLine){
+                cout << (int)strtol(value.c_str(), NULL, 16) << " ";
+            } cout << endl;
+        }
+
         /*std::vector<json> responses = this->translator->executeCommand("watch " + graph, 'h');
         for (const auto &response: responses) {
             if (response["type"] == "notify" && response["message"] == "stopped") {
@@ -110,6 +122,52 @@ void GraphDebugger::setGraph(std::string graph) {
             }
             cout << response << endl;
         }*/
+    }
+}
+
+// todo: Danger zone! Following code works only on 64 bit architecture
+std::vector<std::string> GraphDebugger::getValuesByAddress(std::string address, int n, std::string u) {
+    std::vector<json> responses = this->translator->
+            executeCommand("x/" + std::to_string(n) + "x" + u + " " + address, 'h');
+
+    std::vector<std::string> result;
+    for(const auto& response: responses){
+        if(response["type"] == "console"){
+            std::string payload = response["payload"];
+
+            auto start = 0U;
+            size_t pos = payload.find("\\t", start);
+            while(pos != std::string::npos){
+                result.push_back(payload.substr(pos+2, 18));
+                start = pos + 2;
+                pos = payload.find("\\t", start);
+            }
+
+        }
+    }
+
+    return result;
+}
+
+std::string GraphDebugger::getValueByAddress(std::string address, std::string u) {
+    std::vector<json> responses = this->translator->
+            executeCommand("x/1x" + u + " " + address, 'h');
+
+    for(const auto& response: responses){
+        if(response["type"] == "console"){
+            std::string payload = response["payload"];
+            size_t pos = payload.find("\\t");
+            return payload.substr(pos+2, 18);
+        }
+    }
+}
+
+void GraphDebugger::setBkpt(int lineNumber) {
+    std::vector<json> responses = this->translator->
+            executeCommand("break " + std::to_string(lineNumber), 'h');
+
+    for(const auto &response: responses){
+        cout << response << endl;
     }
 }
 
