@@ -15,6 +15,7 @@ private:
     FILE* gdb;
     std::string graphVariableName;
     int numberOfVertices;
+    bool targetIsSet;
 
     bool isVariableInLocals(std::string variableName);
     std::string getAddressOfVariable(std::string variableName);

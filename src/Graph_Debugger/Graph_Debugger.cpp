@@ -3,6 +3,8 @@
 //
 
 #include "Graph_Debugger.h"
+#include "../utils/respsonseUtils.h"
+using namespace responseUtils;
 
 void GraphDebugger::dump() {
 
@@ -11,24 +13,29 @@ void GraphDebugger::dump() {
 //TODO(important):
 // 1. handle exiting without code duplication
 
+static void sendResponse(const json& response){
+    cout << response << endl;
+}
+
 void GraphDebugger::setTarget(const std::string& target) {
     std::vector<json> messages = this->translator->executeCommand("file " + target, 'h');
-    // TODO: come up with output
+    this->targetIsSet = true;
+    sendResponse(responseUtils::createBinaryResponse(true, "Target is successfully set"));
 }
 
 void GraphDebugger::start() {
     std::vector<json> responses = this->translator->executeCommand("start", 's');
-    // TODO: come up with output
     for(const auto& response: responses){
         if(response["type"] == "notify" && response["message"] == "stopped") {
             if(response["payload"]["reason"] == "exited-normally")
                 throw ExitException("success");
         }
     }
+
+    sendResponse(responseUtils::createBinaryResponse(true, "Debugging started"));
 }
 
 void GraphDebugger::continue_() {
-    // TODO: come up with output
     std::vector<json> responses = this->translator->executeCommand("continue", 's');
     for(const auto& response: responses){
         if(response["type"] == "notify" && response["message"] == "stopped") {
@@ -36,6 +43,8 @@ void GraphDebugger::continue_() {
                 throw ExitException("success");
         }
     }
+
+    sendResponse(responseUtils::createBinaryResponse(true, "Process stopped"));
 }
 
 void GraphDebugger::next() {
@@ -102,26 +111,23 @@ void GraphDebugger::setGraph(std::string graph, int n) {
     if(isVariableInLocals(graph)) {
         this->graphVariableName = graph;
         this->numberOfVertices = n;
+        std::vector<std::vector<int>> adjacencyMatrix(n, vector<int>(n));
 
         std::string addressOfPointerToAdjacencyMatrix = getAddressOfVariable(graph);
         std::vector<std::string> pointersToAdjacencyMatrixLines =
                 getValuesByAddress(getValueByAddress(addressOfPointerToAdjacencyMatrix), numberOfVertices);
 
+        int i = 0, j = 0;
         for(const auto& pointerToLine: pointersToAdjacencyMatrixLines){
-            std::vector<std::string> valuesOfLine = getValuesByAddress(getValueByAddress(pointerToLine), numberOfVertices, "w");
+            std::vector<std::string> valuesOfLine = getValuesByAddress(pointerToLine, numberOfVertices, "w");
             for(const auto& value: valuesOfLine){
-                cout << (int)strtol(value.c_str(), NULL, 16) << " ";
-            } cout << endl;
+                adjacencyMatrix[i][j] = ((int)strtol(value.c_str(), NULL, 16));
+                j++;
+            }
+            i++; j = 0;
         }
 
-        /*std::vector<json> responses = this->translator->executeCommand("watch " + graph, 'h');
-        for (const auto &response: responses) {
-            if (response["type"] == "notify" && response["message"] == "stopped") {
-                if (response["payload"]["reason"] == "exited-normally")
-                    throw ExitException("success");
-            }
-            cout << response << endl;
-        }*/
+        sendResponse(responseUtils::createGraphResponse(true, adjacencyMatrix));
     }
 }
 
@@ -129,6 +135,8 @@ void GraphDebugger::setGraph(std::string graph, int n) {
 std::vector<std::string> GraphDebugger::getValuesByAddress(std::string address, int n, std::string u) {
     std::vector<json> responses = this->translator->
             executeCommand("x/" + std::to_string(n) + "x" + u + " " + address, 'h');
+
+    int unit = (u == "w" ? 10 : 18);
 
     std::vector<std::string> result;
     for(const auto& response: responses){
@@ -138,7 +146,7 @@ std::vector<std::string> GraphDebugger::getValuesByAddress(std::string address, 
             auto start = 0U;
             size_t pos = payload.find("\\t", start);
             while(pos != std::string::npos){
-                result.push_back(payload.substr(pos+2, 18));
+                result.push_back(payload.substr(pos+2, unit));
                 start = pos + 2;
                 pos = payload.find("\\t", start);
             }
@@ -166,9 +174,7 @@ void GraphDebugger::setBkpt(int lineNumber) {
     std::vector<json> responses = this->translator->
             executeCommand("break " + std::to_string(lineNumber), 'h');
 
-    for(const auto &response: responses){
-        cout << response << endl;
-    }
+    sendResponse(responseUtils::createBinaryResponse(true, "Breakpoint is set"));
 }
 
 

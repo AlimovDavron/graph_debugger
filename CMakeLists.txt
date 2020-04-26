@@ -14,6 +14,6 @@ file(COPY pygdbmi
 
 add_executable(core json.hpp main.cpp src/GDB_Translator/PyGDBMIParser.cpp src/GDB_Translator/PyGDBMIParser.cpp src/GDB_Translator/PyGDBMIParser.h
         src/GDB_Translator/Abstract_GDB_MI_Output_Parser.h src/GDB_Translator/GDB_MI_Translator.cpp src/GDB_Translator/GDB_MI_Translator.h src/Console_Interface/ArgumentParser.cpp src/Console_Interface/ArgumentParser.h
-        src/Console_Interface/ConsoleInterface.cpp src/Console_Interface/ConsoleInterface.h src/Graph_Debugger/Graph_Debugger.h src/Graph_Debugger/Graph_Debugger.cpp src/Graph_Debugger/GraphDebuggerExceptions.h)
+        src/Console_Interface/ConsoleInterface.cpp src/Console_Interface/ConsoleInterface.h src/Graph_Debugger/Graph_Debugger.h src/Graph_Debugger/Graph_Debugger.cpp src/Graph_Debugger/GraphDebuggerExceptions.h src/utils/respsonseUtils.h)
 
 target_link_libraries(core PRIVATE pybind11::embed)

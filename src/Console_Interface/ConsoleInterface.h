@@ -22,7 +22,6 @@
 using namespace std;
 using json = nlohmann::json;
 
-
 class AbstractCommandHandler {
 protected:
     GraphDebugger *graphDebugger;

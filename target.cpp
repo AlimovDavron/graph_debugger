@@ -33,17 +33,28 @@ int main() {
         used[i] = 0;
     }
 
+    int buf;
     for(int i = 0; i < 5; i++){
         *(graph + i) = new int[n];
         for(int j = 0; j < 5; j++){
-            *(*(graph + i) + j) = j;
+            cin >> buf;
+            *(*(graph + i) + j) = buf;
         }
     }
 
-    show(graph, n);
+    cout << graph << endl;
+    for(int i = 0; i < n; i++){
+        cout << graph[i] << ' ';
+    } cout << endl;
+
+    for(int i = 0; i < n; i++){
+        cout << graph[0][i] << " ";
+    } cout << endl;
+
+    //show(graph, n);
     dfs(graph, used, 0, n);
     cout << "incremented " << endl;
-    show(graph, n);
+    //show(graph, n);
 
     return 0;
 }
