@@ -26,10 +26,22 @@ namespace responseUtils{
         return result;
     }
 
-    json createGraphResponse(bool success, std::vector<std::vector<int>> adjacencyMatrix){
+    json createStopResponse(std::string reason, std::vector<std::vector<int>> adjacencyMatrix, int line){
+        return json({
+            {"reason", reason},
+            {"graph", adjacencyMatrixToString(adjacencyMatrix)},
+            {"position", {
+                {"line", line},
+            }},
+            {"attaches", json::array({})}
+        });
+    }
+
+    json createSetGraphResponse(bool success, std::vector<std::vector<int>> adjacencyMatrix){
         return json({
             {"success", success},
-            {"graph", adjacencyMatrixToString(adjacencyMatrix)}
+            {"graph", adjacencyMatrixToString(adjacencyMatrix)},
+            {"attaches", NULL}
         });
     }
 }

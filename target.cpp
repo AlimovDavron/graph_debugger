@@ -26,6 +26,8 @@ int main() {
     freopen("graph", "r", stdin);
     cin >> n;
 
+    cout << 1/0 << endl;
+
     int** graph = new int*[n];
     int* used = new int[n];
 
