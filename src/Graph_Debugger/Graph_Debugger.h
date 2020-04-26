@@ -21,6 +21,7 @@ private:
     std::string getAddressOfVariable(std::string variableName);
     std::string getValueByAddress(std::string address, std::string u = "g");
     std::vector<std::string> getValuesByAddress(std::string address, int n = 1, std::string u = "g");
+    std::vector<std::vector<int>> getAdjacencyMatrix();
 
 public:
     GraphDebugger(int FIFOFileDescriptor, FILE *gdb){

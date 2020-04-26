@@ -106,28 +106,32 @@ std::string GraphDebugger::getAddressOfVariable(std::string variableName) {
     }
 }
 
+std::vector<std::vector<int>> GraphDebugger::getAdjacencyMatrix() {
+    std::vector<std::vector<int>> adjacencyMatrix(this->numberOfVertices, vector<int>(this->numberOfVertices));
+
+    std::string addressOfPointerToAdjacencyMatrix = getAddressOfVariable(this->graphVariableName);
+    std::vector<std::string> pointersToAdjacencyMatrixLines =
+            getValuesByAddress(getValueByAddress(addressOfPointerToAdjacencyMatrix), numberOfVertices);
+
+    int i = 0, j = 0;
+    for(const auto& pointerToLine: pointersToAdjacencyMatrixLines){
+        std::vector<std::string> valuesOfLine = getValuesByAddress(pointerToLine, numberOfVertices, "w");
+        for(const auto& value: valuesOfLine){
+            adjacencyMatrix[i][j] = ((int)strtol(value.c_str(), NULL, 16));
+            j++;
+        }
+        i++; j = 0;
+    }
+
+    return adjacencyMatrix;
+}
 
 void GraphDebugger::setGraph(std::string graph, int n) {
     if(isVariableInLocals(graph)) {
         this->graphVariableName = graph;
         this->numberOfVertices = n;
-        std::vector<std::vector<int>> adjacencyMatrix(n, vector<int>(n));
 
-        std::string addressOfPointerToAdjacencyMatrix = getAddressOfVariable(graph);
-        std::vector<std::string> pointersToAdjacencyMatrixLines =
-                getValuesByAddress(getValueByAddress(addressOfPointerToAdjacencyMatrix), numberOfVertices);
-
-        int i = 0, j = 0;
-        for(const auto& pointerToLine: pointersToAdjacencyMatrixLines){
-            std::vector<std::string> valuesOfLine = getValuesByAddress(pointerToLine, numberOfVertices, "w");
-            for(const auto& value: valuesOfLine){
-                adjacencyMatrix[i][j] = ((int)strtol(value.c_str(), NULL, 16));
-                j++;
-            }
-            i++; j = 0;
-        }
-
-        sendResponse(responseUtils::createGraphResponse(true, adjacencyMatrix));
+        sendResponse(responseUtils::createGraphResponse(true, getAdjacencyMatrix()));
     }
 }
 
@@ -176,6 +180,8 @@ void GraphDebugger::setBkpt(int lineNumber) {
 
     sendResponse(responseUtils::createBinaryResponse(true, "Breakpoint is set"));
 }
+
+
 
 
 
