@@ -3,7 +3,7 @@
 //
 
 #include "Graph_Debugger.h"
-#include "../utils/respsonseUtils.h"
+#include "../utils/responseUtils.h"
 using namespace responseUtils;
 
 void GraphDebugger::dump() {
@@ -193,7 +193,14 @@ void GraphDebugger::setBkpt(int lineNumber) {
     std::vector<json> responses = this->translator->
             executeCommand("break " + std::to_string(lineNumber), 'h');
 
-    sendResponse(responseUtils::createBinaryResponse(true, "Breakpoint is set"));
+    for(const auto& response: responses){
+        if(response["type"] == "notify"){
+            sendResponse(responseUtils::createBinaryResponse(true, response["message"]));
+            return;
+        }
+    }
+
+    sendResponse(responseUtils::createBinaryResponse(false, "Error"));
 }
 
 int GraphDebugger::getCurrentLine() {

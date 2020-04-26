@@ -2,8 +2,8 @@
 // Created by alimovdavron on 4/26/20.
 //
 
-#ifndef CORE_RESPSONSEUTILS_H
-#define CORE_RESPSONSEUTILS_H
+#ifndef CORE_RESPONSEUTILS_H
+#define CORE_RESPONSEUTILS_H
 #include "../../json.hpp"
 using json = nlohmann::json;
 
@@ -46,4 +46,4 @@ namespace responseUtils{
     }
 }
 
-#endif //CORE_RESPSONSEUTILS_H
+#endif //CORE_RESPONSEUTILS_H
