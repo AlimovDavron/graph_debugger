@@ -7,6 +7,7 @@ int dfs(int** graph, int* used, int v, int n){
         if(!used[i]){
             if(*(*(graph+v)+i) != 0){
                 *(*(graph+v)+i) = *(*(graph+v)+i) + 1;
+                *(*(graph+i)+v) = *(*(graph+i)+v) + 1;
                 dfs(graph, used, i, n);
             }
         }
@@ -26,8 +27,6 @@ int main() {
     freopen("graph", "r", stdin);
     cin >> n;
 
-    cout << 1/0 << endl;
-
     int** graph = new int*[n];
     int* used = new int[n];
 
@@ -44,19 +43,10 @@ int main() {
         }
     }
 
-    cout << graph << endl;
-    for(int i = 0; i < n; i++){
-        cout << graph[i] << ' ';
-    } cout << endl;
-
-    for(int i = 0; i < n; i++){
-        cout << graph[0][i] << " ";
-    } cout << endl;
-
-    //show(graph, n);
+    show(graph, n);
     dfs(graph, used, 0, n);
     cout << "incremented " << endl;
-    //show(graph, n);
+    show(graph, n);
 
     return 0;
 }

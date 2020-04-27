@@ -41,7 +41,7 @@ namespace responseUtils{
         return json({
             {"success", success},
             {"graph", adjacencyMatrixToString(adjacencyMatrix)},
-            {"attaches", NULL}
+            {"attaches", json::array({})}
         });
     }
 }

@@ -50,19 +50,26 @@ void GraphDebugger::continue_() {
     std::vector<json> responses = this->translator->executeCommand("continue", 's');
     for(const auto& response: responses){
         if(response["type"] == "notify" && response["message"] == "stopped") {
+            sendResponse(responseUtils::createStopResponse(
+                    response["payload"]["reason"],
+                    getAdjacencyMatrix(),
+                    getCurrentLine()));
+
             if(response["payload"]["reason"] == "exited-normally")
                 throw ExitException("success");
         }
     }
-
-    sendResponse(responseUtils::createBinaryResponse(true, "Process stopped"));
 }
 
 void GraphDebugger::next() {
-    // TODO: come up with output
     std::vector<json> responses = this->translator->executeCommand("next", 's');
     for(const auto& response: responses){
         if(response["type"] == "notify" && response["message"] == "stopped") {
+            sendResponse(responseUtils::createStopResponse(
+                    response["payload"]["reason"],
+                    getAdjacencyMatrix(),
+                    getCurrentLine()));
+
             if(response["payload"]["reason"] == "exited-normally")
                 throw ExitException("success");
         }
