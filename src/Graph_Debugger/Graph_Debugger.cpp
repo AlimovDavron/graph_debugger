@@ -30,18 +30,34 @@ void GraphDebugger::setTarget(const std::string& target) {
     }
 }
 
+void GraphDebugger::handleMovementResponse(const json & response) {
+    if(response["type"] == "notify" && response["message"] == "stopped") {
+
+        if(response["payload"]["reason"] == "signal-received"){
+            sendResponse(responseUtils::createErrorStopResponse(
+                    response["payload"]["reason"],
+                    response["payload"]["signal-meaning"],
+                    getAdjacencyMatrix(),
+                    getCurrentLine()));
+            return;
+        }
+
+        if(response["payload"]["reason"] == "exited-normally" or
+           response["payload"]["reason"] == "exited-signalled")
+            throw ExitException("success");
+
+
+        sendResponse(responseUtils::createStopResponse(
+                response["payload"]["reason"],
+                getAdjacencyMatrix(),
+                getCurrentLine()));
+    }
+}
+
 void GraphDebugger::start() {
     std::vector<json> responses = this->translator->executeCommand("start", 's');
     for(const auto& response: responses){
-        if(response["type"] == "notify" && response["message"] == "stopped") {
-            sendResponse(responseUtils::createStopResponse(
-                    response["payload"]["reason"],
-                    getAdjacencyMatrix(),
-                    getCurrentLine()));
-
-            if(response["payload"]["reason"] == "exited-normally")
-                throw ExitException("success");
-        }
+        handleMovementResponse(response);
     }
 
 }
@@ -49,30 +65,14 @@ void GraphDebugger::start() {
 void GraphDebugger::continue_() {
     std::vector<json> responses = this->translator->executeCommand("continue", 's');
     for(const auto& response: responses){
-        if(response["type"] == "notify" && response["message"] == "stopped") {
-            sendResponse(responseUtils::createStopResponse(
-                    response["payload"]["reason"],
-                    getAdjacencyMatrix(),
-                    getCurrentLine()));
-
-            if(response["payload"]["reason"] == "exited-normally")
-                throw ExitException("success");
-        }
+        handleMovementResponse(response);
     }
 }
 
 void GraphDebugger::next() {
     std::vector<json> responses = this->translator->executeCommand("next", 's');
     for(const auto& response: responses){
-        if(response["type"] == "notify" && response["message"] == "stopped") {
-            sendResponse(responseUtils::createStopResponse(
-                    response["payload"]["reason"],
-                    getAdjacencyMatrix(),
-                    getCurrentLine()));
-
-            if(response["payload"]["reason"] == "exited-normally")
-                throw ExitException("success");
-        }
+        handleMovementResponse(response);
     }
 }
 
@@ -99,7 +99,7 @@ bool GraphDebugger::isVariableInLocals(std::string variableName){
     return false;
 }
 
-std::string GraphDebugger::getAddressOfVariable(std::string variableName) {
+std::string GraphDebugger::getAddressOfVariable(const std::string& variableName) {
     std::vector<json> responses = this->translator->executeCommand("p &" + variableName, 'h');
     for (const auto &response: responses) {
         if(response["type"] == "console"){
@@ -225,6 +225,8 @@ int GraphDebugger::getCurrentLine() {
     }
     return 0;
 }
+
+
 
 
 

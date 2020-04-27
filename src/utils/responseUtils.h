@@ -37,6 +37,18 @@ namespace responseUtils{
         });
     }
 
+    json createErrorStopResponse(std::string reason, std::string errorMessage, std::vector<std::vector<int>> adjacencyMatrix, int line){
+        return json({
+            {"reason", reason},
+            {"error", errorMessage},
+            {"graph", adjacencyMatrixToString(adjacencyMatrix)},
+            {"position", {
+                {"line", line},
+            }},
+            {"attaches", json::array({})}
+        });
+    }
+
     json createSetGraphResponse(bool success, std::vector<std::vector<int>> adjacencyMatrix){
         return json({
             {"success", success},
