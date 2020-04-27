@@ -171,16 +171,14 @@ std::string GraphDebugger::getValueByAddress(std::string address, int offset, in
 
 void GraphDebugger::setBkpt(int lineNumber) {
     std::vector<json> responses = this->translator->
-            executeCommand("break " + std::to_string(lineNumber), 'h');
+            executeCommand("-break-insert " + std::to_string(lineNumber), 'h');
 
     for(const auto& response: responses){
-        if(response["type"] == "notify"){
-            sendResponse(responseUtils::createBinaryResponse(true, response["message"]));
+        if(response["type"] == "result"){
+            sendResponse(responseUtils::createBinaryResponse(response["message"] == "done", response["message"]));
             return;
         }
     }
-
-    sendResponse(responseUtils::createBinaryResponse(false, "Error"));
 }
 
 Position GraphDebugger::getCurrentPosition() {
@@ -198,7 +196,7 @@ Position GraphDebugger::getCurrentPosition() {
 
 void GraphDebugger::debug() {
     std::vector<json> responses = this->translator->
-            executeCommand("-stack-info-frame", 'h');
+            executeCommand("-break-insert 12312312312312312", 'h');
 
     for(const auto& response: responses){
         cout << response << endl;
