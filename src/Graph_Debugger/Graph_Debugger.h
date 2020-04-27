@@ -8,6 +8,7 @@
 #include <iostream>
 #include "../GDB_Translator/GDB_MI_Translator.h"
 #include "GraphDebuggerExceptions.h"
+#include "../common/structures.h"
 
 class GraphDebugger {
 private:
@@ -19,10 +20,10 @@ private:
 
     bool isVariableInLocals(std::string variableName);
     std::string getAddressOfVariable(const std::string& variableName);
-    std::string getValueByAddress(std::string address, std::string u = "g");
-    std::vector<std::string> getValuesByAddress(std::string address, int n = 1, std::string u = "g");
+    std::string getValueByAddress(std::string address, int offset, int count);
+    std::vector<std::string> getValuesByAddress(std::string address, int n = 1, int count = 8);
     std::vector<std::vector<int>> getAdjacencyMatrix();
-    int getCurrentLine();
+    Position getCurrentPosition();
     void handleMovementResponse(const json&);
 
 public:
@@ -38,6 +39,7 @@ public:
     void next();
     void setGraph(std::string, int);
     void setBkpt(int);
+    void debug();
 
 };
 
