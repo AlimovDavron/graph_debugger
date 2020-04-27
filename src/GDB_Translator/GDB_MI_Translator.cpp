@@ -100,7 +100,7 @@ std::vector<json> GDB_MI_Translator::executeCommand(std::string command, char mo
     if(mode == 'h') {
         int hash = rand() % 10000;
 
-        fprintf(gdb, "%s %s\n", std::to_string(hash).c_str(), command.c_str());
+        fprintf(gdb, "%s%s\n", std::to_string(hash).c_str(), command.c_str());
         fflush(gdb);
 
         return readGDMIResponseUntilHash(hash);

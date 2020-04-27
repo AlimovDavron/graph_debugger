@@ -5,6 +5,8 @@
 #ifndef CORE_RESPONSEUTILS_H
 #define CORE_RESPONSEUTILS_H
 #include "../../json.hpp"
+#include "../common/structures.h"
+
 using json = nlohmann::json;
 
 namespace responseUtils{
@@ -26,24 +28,28 @@ namespace responseUtils{
         return result;
     }
 
-    json createStopResponse(std::string reason, std::vector<std::vector<int>> adjacencyMatrix, int line){
+    json createStopResponse(std::string reason, std::vector<std::vector<int>> adjacencyMatrix, Position position){
         return json({
             {"reason", reason},
             {"graph", adjacencyMatrixToString(adjacencyMatrix)},
             {"position", {
-                {"line", line},
+                 {"line", position.line},
+                 {"func", position.function},
+                 {"file", position.file}
             }},
             {"attaches", json::array({})}
         });
     }
 
-    json createErrorStopResponse(std::string reason, std::string errorMessage, std::vector<std::vector<int>> adjacencyMatrix, int line){
+    json createErrorStopResponse(std::string reason, std::string errorMessage, std::vector<std::vector<int>> adjacencyMatrix, Position position){
         return json({
             {"reason", reason},
             {"error", errorMessage},
             {"graph", adjacencyMatrixToString(adjacencyMatrix)},
             {"position", {
-                {"line", line},
+                 {"line", position.line},
+                 {"func", position.function},
+                 {"file", position.file}
             }},
             {"attaches", json::array({})}
         });

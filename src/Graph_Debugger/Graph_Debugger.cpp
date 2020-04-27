@@ -38,7 +38,7 @@ void GraphDebugger::handleMovementResponse(const json & response) {
                     response["payload"]["reason"],
                     response["payload"]["signal-meaning"],
                     getAdjacencyMatrix(),
-                    getCurrentLine()));
+                    getCurrentPosition()));
             return;
         }
 
@@ -50,12 +50,12 @@ void GraphDebugger::handleMovementResponse(const json & response) {
         sendResponse(responseUtils::createStopResponse(
                 response["payload"]["reason"],
                 getAdjacencyMatrix(),
-                getCurrentLine()));
+                getCurrentPosition()));
     }
 }
 
 void GraphDebugger::start() {
-    std::vector<json> responses = this->translator->executeCommand("start", 's');
+    std::vector<json> responses = this->translator->executeCommand("-exec-run --start", 's');
     for(const auto& response: responses){
         handleMovementResponse(response);
     }
@@ -63,7 +63,7 @@ void GraphDebugger::start() {
 }
 
 void GraphDebugger::continue_() {
-    std::vector<json> responses = this->translator->executeCommand("continue", 's');
+    std::vector<json> responses = this->translator->executeCommand("-exec-continue", 's');
     for(const auto& response: responses){
         handleMovementResponse(response);
     }
@@ -100,26 +100,13 @@ bool GraphDebugger::isVariableInLocals(std::string variableName){
 }
 
 std::string GraphDebugger::getAddressOfVariable(const std::string& variableName) {
-    std::vector<json> responses = this->translator->executeCommand("p &" + variableName, 'h');
+    std::vector<json> responses = this->translator->executeCommand("-data-evaluate-expression &" + variableName, 'h');
     for (const auto &response: responses) {
-        if(response["type"] == "console"){
-            std::string s = response["payload"];
-            std::string delim = " ";
-
-            auto start = 0U;
-            auto end = s.find(delim);
-            while (end != std::string::npos)
-            {
-                if(s.substr(start, end - start).substr(0, 2) == "0x") {
-                    return s.substr(start, end - start);
-                }
-                start = end + delim.length();
-                end = s.find(delim, start);
+        if(response["type"] ==  "result"){
+            if(response["message"] ==  "done"){
+                return response["payload"]["value"];
             }
-
-            if(s.substr(start, end).substr(0, 2) == "0x") {
-                return s.substr(start, s.length() - start);
-            }
+            // todo: handle error
         }
     }
 }
@@ -133,11 +120,11 @@ std::vector<std::vector<int>> GraphDebugger::getAdjacencyMatrix() {
 
     std::string addressOfPointerToAdjacencyMatrix = getAddressOfVariable(this->graphVariableName);
     std::vector<std::string> pointersToAdjacencyMatrixLines =
-            getValuesByAddress(getValueByAddress(addressOfPointerToAdjacencyMatrix), numberOfVertices);
+            getValuesByAddress(getValueByAddress(addressOfPointerToAdjacencyMatrix, 0, 8), numberOfVertices);
 
     int i = 0, j = 0;
     for(const auto& pointerToLine: pointersToAdjacencyMatrixLines){
-        std::vector<std::string> valuesOfLine = getValuesByAddress(pointerToLine, numberOfVertices, "w");
+        std::vector<std::string> valuesOfLine = getValuesByAddress(pointerToLine, numberOfVertices, 4);
         for(const auto& value: valuesOfLine){
             adjacencyMatrix[i][j] = ((int)strtol(value.c_str(), NULL, 16));
             j++;
@@ -149,81 +136,71 @@ std::vector<std::vector<int>> GraphDebugger::getAdjacencyMatrix() {
 }
 
 void GraphDebugger::setGraph(std::string graph, int n) {
-    if(isVariableInLocals(graph)) {
-        this->graphVariableName = graph;
-        this->numberOfVertices = n;
+    this->graphVariableName = graph;
+    this->numberOfVertices = n;
 
-        sendResponse(responseUtils::createSetGraphResponse(true, getAdjacencyMatrix()));
-    }
+    sendResponse(responseUtils::createSetGraphResponse(true, getAdjacencyMatrix()));
 }
 
 // todo: Danger zone! Following code works only on 64 bit architecture
-std::vector<std::string> GraphDebugger::getValuesByAddress(std::string address, int n, std::string u) {
-    std::vector<json> responses = this->translator->
-            executeCommand("x/" + std::to_string(n) + "x" + u + " " + address, 'h');
-
-    int unit = (u == "w" ? 10 : 18);
-
-    std::vector<std::string> result;
-    for(const auto& response: responses){
-        if(response["type"] == "console"){
-            std::string payload = response["payload"];
-
-            auto start = 0U;
-            size_t pos = payload.find("\\t", start);
-            while(pos != std::string::npos){
-                result.push_back(payload.substr(pos+2, unit));
-                start = pos + 2;
-                pos = payload.find("\\t", start);
-            }
-
-        }
+std::vector<std::string> GraphDebugger::getValuesByAddress(std::string address, int n, int count) {
+    std::vector<std::string> result(n);
+    for(int i = 0; i < n; i++){
+        result[i] = getValueByAddress(address, i*count, count);
     }
 
     return result;
 }
-
-std::string GraphDebugger::getValueByAddress(std::string address, std::string u) {
+std::string GraphDebugger::getValueByAddress(std::string address, int offset, int count) {
     std::vector<json> responses = this->translator->
-            executeCommand("x/1x" + u + " " + address, 'h');
+            executeCommand("-data-read-memory-bytes -o " + to_string(offset) + " " + address + " " + to_string(count) + " ", 'h');
 
+    std::string result(count*2, ' ');
     for(const auto& response: responses){
-        if(response["type"] == "console"){
-            std::string payload = response["payload"];
-            size_t pos = payload.find("\\t");
-            return payload.substr(pos+2, 18);
+        if(response["type"] == "result"){
+            std::string value = response["payload"]["memory"][0]["contents"];
+            for(int i = 0; i < count; i++){
+                result[2*i] = value[2*count - 2*i - 2];
+                result[2*i+1] = value[2*count - 2*i - 1];
+            }
+            return "0x"+result;
         }
+        // todo: handle error
     }
 }
 
 void GraphDebugger::setBkpt(int lineNumber) {
     std::vector<json> responses = this->translator->
-            executeCommand("break " + std::to_string(lineNumber), 'h');
+            executeCommand("-break-insert " + std::to_string(lineNumber), 'h');
 
     for(const auto& response: responses){
-        if(response["type"] == "notify"){
-            sendResponse(responseUtils::createBinaryResponse(true, response["message"]));
+        if(response["type"] == "result"){
+            sendResponse(responseUtils::createBinaryResponse(response["message"] == "done", response["message"]));
             return;
         }
     }
-
-    sendResponse(responseUtils::createBinaryResponse(false, "Error"));
 }
 
-int GraphDebugger::getCurrentLine() {
+Position GraphDebugger::getCurrentPosition() {
     std::vector<json> responses = this->translator->
-            executeCommand("frame", 'h');
+            executeCommand("-stack-info-frame", 'h');
 
     for(const auto& response: responses){
-        if(response["type"] == "console"){
-            std::string payload = response["payload"];
-            size_t pos = payload.find("\\t");
-            if(pos != std::string::npos){
-                return (int)stoi(payload.substr(0, pos), NULL, 10);
-            }
+        if(response["type"] == "result"){
+            return Position(stoi((string)response["payload"]["frame"]["line"], NULL, 10),
+                            response["payload"]["frame"]["file"],
+                            response["payload"]["frame"]["func"]);
         }
     }
-    return 0;
+}
+
+void GraphDebugger::debug() {
+    std::vector<json> responses = this->translator->
+            executeCommand("-break-insert 12312312312312312", 'h');
+
+    for(const auto& response: responses){
+        cout << response << endl;
+    }
 }
 
 

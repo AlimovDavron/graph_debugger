@@ -151,6 +151,14 @@ public:
     }
 };
 
+class DebugCommandHandler : AbstractCommandHandler {
+public:
+    explicit DebugCommandHandler(GraphDebugger* graphDebugger) : AbstractCommandHandler(graphDebugger) {}
+    void execute(istringstream& input) override {
+        this->graphDebugger->debug();
+    }
+};
+
 const std::string FIFO_FILE = "graph_debugger";
 
 class ConsoleInterface {
@@ -168,6 +176,8 @@ public:
                 {"start",      (AbstractCommandHandler*) new StartCommandHandler(graphDebugger)},
                 {"set-graph",  (AbstractCommandHandler*) new SetGraphCommandHandler(graphDebugger)},
                 {"set-bkpt", (AbstractCommandHandler*) new SetBkptCommandHandler(graphDebugger)},
+                //todo: remove this later
+                {"debug", (AbstractCommandHandler*) new DebugCommandHandler(graphDebugger)}
                 //{"dump",       (AbstractCommandHandler*) new DumpCommandHandler(graphDebugger)},
         };
     }
