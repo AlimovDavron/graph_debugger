@@ -117,6 +117,19 @@ private:
     void parse_args(istringstream& inputStream) {}
 };
 
+class AttachToVerticesCommandHandler : AbstractCommandHandler {
+public:
+    explicit AttachToVerticesCommandHandler(GraphDebugger* graphDebugger) : AbstractCommandHandler(graphDebugger) {}
+    void execute(istringstream& inputStream) override {
+        std::string array;
+        inputStream >> array;
+        this->graphDebugger->attachToVertices(array);
+    }
+
+private:
+    void parse_args(istringstream& inputStream) {}
+};
+
 class SetBkptCommandHandler : AbstractCommandHandler {
 public:
     explicit SetBkptCommandHandler(GraphDebugger* graphDebugger) : AbstractCommandHandler(graphDebugger) {}
@@ -176,6 +189,7 @@ public:
                 {"start",      (AbstractCommandHandler*) new StartCommandHandler(graphDebugger)},
                 {"set-graph",  (AbstractCommandHandler*) new SetGraphCommandHandler(graphDebugger)},
                 {"set-bkpt", (AbstractCommandHandler*) new SetBkptCommandHandler(graphDebugger)},
+                {"attach-to-vertices", (AbstractCommandHandler*) new AttachToVerticesCommandHandler(graphDebugger)},
                 //todo: remove this later
                 {"debug", (AbstractCommandHandler*) new DebugCommandHandler(graphDebugger)}
                 //{"dump",       (AbstractCommandHandler*) new DumpCommandHandler(graphDebugger)},

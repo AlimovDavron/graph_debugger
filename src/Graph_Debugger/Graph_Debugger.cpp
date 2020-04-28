@@ -37,7 +37,7 @@ void GraphDebugger::handleMovementResponse(const json & response) {
             sendResponse(responseUtils::createErrorStopResponse(
                     response["payload"]["reason"],
                     response["payload"]["signal-meaning"],
-                    getAdjacencyMatrix(),
+                    getGraph(),
                     getCurrentPosition()));
             return;
         }
@@ -49,7 +49,7 @@ void GraphDebugger::handleMovementResponse(const json & response) {
 
         sendResponse(responseUtils::createStopResponse(
                 response["payload"]["reason"],
-                getAdjacencyMatrix(),
+                getGraph(),
                 getCurrentPosition()));
     }
 }
@@ -111,12 +111,26 @@ std::string GraphDebugger::getAddressOfVariable(const std::string& variableName)
     }
 }
 
-std::vector<std::vector<int>> GraphDebugger::getAdjacencyMatrix() {
+std::string GraphDebugger::getElementOfArray(const std::string& variableName, int index) {
+    std::vector<json> responses = this->translator->
+            executeCommand("-data-evaluate-expression *(" + variableName + "+" + to_string(index) + ")", 'h');
+    for (const auto &response: responses) {
+        if(response["type"] ==  "result"){
+            if(response["message"] ==  "done"){
+                return response["payload"]["value"];
+            }
+            // todo: handle error
+        }
+    }
+}
+
+Graph GraphDebugger::getGraph() {
     if(numberOfVertices == -1){
-        return std::vector<std::vector<int>>();
+        return Graph();
     }
 
     std::vector<std::vector<int>> adjacencyMatrix(this->numberOfVertices, vector<int>(this->numberOfVertices));
+    map<std::string, std::vector<std::string>> loads;
 
     std::string addressOfPointerToAdjacencyMatrix = getAddressOfVariable(this->graphVariableName);
     std::vector<std::string> pointersToAdjacencyMatrixLines =
@@ -132,14 +146,24 @@ std::vector<std::vector<int>> GraphDebugger::getAdjacencyMatrix() {
         i++; j = 0;
     }
 
-    return adjacencyMatrix;
+
+    for(const auto& variableName: this->vertexLoads){
+        vector<std::string> values(this->numberOfVertices, "");
+        for(i = 0; i < this->numberOfVertices; i++){
+            values[i] = getElementOfArray(variableName, i);
+        }
+
+        loads[variableName] = values;
+    }
+
+    return Graph(adjacencyMatrix, loads);
 }
 
 void GraphDebugger::setGraph(std::string graph, int n) {
     this->graphVariableName = graph;
     this->numberOfVertices = n;
 
-    sendResponse(responseUtils::createSetGraphResponse(true, getAdjacencyMatrix()));
+    sendResponse(responseUtils::createSetGraphResponse(true, getGraph()));
 }
 
 // todo: Danger zone! Following code works only on 64 bit architecture
@@ -194,6 +218,13 @@ Position GraphDebugger::getCurrentPosition() {
     }
 }
 
+void GraphDebugger::attachToVertices(std::string variableName) {
+    this->vertexLoads.push_back(variableName);
+
+    sendResponse(responseUtils::createSetGraphResponse(true, getGraph()));
+}
+
+// todo: remove this later
 void GraphDebugger::debug() {
     std::vector<json> responses = this->translator->
             executeCommand("-break-insert 12312312312312312", 'h');
@@ -202,6 +233,7 @@ void GraphDebugger::debug() {
         cout << response << endl;
     }
 }
+
 
 
 

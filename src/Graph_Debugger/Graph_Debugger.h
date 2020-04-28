@@ -16,14 +16,16 @@ private:
     FILE* gdb;
     std::string graphVariableName = "";
     int numberOfVertices = -1;
+    vector<std::string> vertexLoads;
     bool targetIsSet;
 
     bool isVariableInLocals(std::string variableName);
     std::string getAddressOfVariable(const std::string& variableName);
     std::string getValueByAddress(std::string address, int offset, int count);
     std::vector<std::string> getValuesByAddress(std::string address, int n = 1, int count = 8);
-    std::vector<std::vector<int>> getAdjacencyMatrix();
+    Graph getGraph();
     Position getCurrentPosition();
+    std::string getElementOfArray(const std::string&, int);
     void handleMovementResponse(const json&);
 
 public:
@@ -40,6 +42,7 @@ public:
     void setGraph(std::string, int);
     void setBkpt(int);
     void debug();
+    void attachToVertices(std::string);
 
 };
 

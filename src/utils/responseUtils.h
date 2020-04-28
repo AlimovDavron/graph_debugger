@@ -17,49 +17,38 @@ namespace responseUtils{
         });
     }
 
-    std::string adjacencyMatrixToString(std::vector<std::vector<int>>& adjacencyMatrix){
-        std::string result;
-        for(const std::vector<int>& line: adjacencyMatrix){
-            for(const int vertex: line){
-                result += std::to_string(vertex) + " ";
-            } result += "\n";
-        }
-
-        return result;
-    }
-
-    json createStopResponse(std::string reason, std::vector<std::vector<int>> adjacencyMatrix, Position position){
+    json createStopResponse(std::string reason, Graph graph, Position position){
         return json({
             {"reason", reason},
-            {"graph", adjacencyMatrixToString(adjacencyMatrix)},
+            {"graph", json(graph.adjacencyMatrix)},
             {"position", {
                  {"line", position.line},
                  {"func", position.function},
                  {"file", position.file}
             }},
-            {"attaches", json::array({})}
+            {"loads", json(graph.vertexLoads)}
         });
     }
 
-    json createErrorStopResponse(std::string reason, std::string errorMessage, std::vector<std::vector<int>> adjacencyMatrix, Position position){
+    json createErrorStopResponse(std::string reason, std::string errorMessage, Graph graph, Position position){
         return json({
             {"reason", reason},
             {"error", errorMessage},
-            {"graph", adjacencyMatrixToString(adjacencyMatrix)},
+            {"graph", json(graph.adjacencyMatrix)},
             {"position", {
                  {"line", position.line},
                  {"func", position.function},
                  {"file", position.file}
             }},
-            {"attaches", json::array({})}
+            {"loads", json(graph.vertexLoads)}
         });
     }
 
-    json createSetGraphResponse(bool success, std::vector<std::vector<int>> adjacencyMatrix){
+    json createSetGraphResponse(bool success, Graph graph){
         return json({
             {"success", success},
-            {"graph", adjacencyMatrixToString(adjacencyMatrix)},
-            {"attaches", json::array({})}
+            {"graph", json(graph.adjacencyMatrix)},
+            {"loads", json(graph.vertexLoads)}
         });
     }
 }
