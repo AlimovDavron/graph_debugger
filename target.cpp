@@ -1,6 +1,12 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+struct Test{
+    int a, b;
+    Test(){};
+    Test(int a, int b): a(a), b(b){};
+};
+
 int dfs(int** graph, int* used, int v, int n){
     used[v] = 1;
     for(int i = 0; i < n; i++){
@@ -29,9 +35,25 @@ int main() {
 
     int** graph = new int*[n];
     int* used = new int[n];
+    int* permutation = new int[n];
+    permutation[0] = 2;
+    permutation[1] = 4;
+    permutation[2] = 3;
+    permutation[3] = 1;
+    permutation[4] = 5;
+
+    Test* tests = new Test[n];
+    for(int i = 0; i < n; i++){
+        tests[i] = {i, i+1};
+    }
+
 
     for(int i = 0; i < n; i++){
         used[i] = 0;
+    }
+
+    for(int i = 0; i < n; i++){
+        cout << tests[i].a << " " << tests[i].b << endl;
     }
 
     int buf;
@@ -43,8 +65,10 @@ int main() {
         }
     }
 
-    show(graph, n);
     dfs(graph, used, 0, n);
+
+
+    show(graph, n);
     cout << "incremented " << endl;
     show(graph, n);
 
