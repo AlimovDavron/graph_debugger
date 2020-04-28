@@ -5,7 +5,6 @@
 #include "PyGDBMIParser.h"
 
 json PyGDBMIParser::parseOutput(std::string gdbmiOutput) {
-    py::scoped_interpreter guard{};
     py::module gdbmiparser = py::module::import("pygdbmi.gdbmiparser");
 
     py::object parsedResponse = py::module::import("json")

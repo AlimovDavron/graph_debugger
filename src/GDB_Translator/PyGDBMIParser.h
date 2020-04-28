@@ -14,6 +14,8 @@ namespace py = pybind11;
 using json = nlohmann::json;
 
 class PyGDBMIParser : AbstractGDBMIOutputParser {
+    py::scoped_interpreter guard{};
+
 public:
     json parseOutput(std::string GDBMIText) override;
 };
