@@ -30,10 +30,28 @@ void GraphDebugger::setTarget(const std::string& target) {
     }
 }
 
+int getVertexNumber(const std::string& expression){
+    size_t os(expression.find('[')), cs(expression.find(']'));
+    return (int)stoi(expression.substr(os+1, cs - os - 1), NULL, 10);
+}
+
+std::string getLoad(const std::string& expression){
+    return expression.substr(0, expression.find('['));
+}
+
+static WatchChanges getWatchChanges(const json& response){
+    std::string expression = response["payload"]["wpt"]["exp"];
+    return WatchChanges(response["payload"]["value"]["old"],
+                        response["payload"]["value"]["new"],
+                        getLoad(expression),
+                        getVertexNumber(expression));
+}
+
 void GraphDebugger::handleMovementResponse(const json & response) {
     if(response["type"] == "notify" && response["message"] == "stopped") {
 
-        if(response["payload"]["reason"] == "signal-received"){
+        std::string reason = response["payload"]["reason"];
+        if(reason == "signal-received"){
             sendResponse(responseUtils::createErrorStopResponse(
                     response["payload"]["reason"],
                     response["payload"]["signal-meaning"],
@@ -42,10 +60,18 @@ void GraphDebugger::handleMovementResponse(const json & response) {
             return;
         }
 
-        if(response["payload"]["reason"] == "exited-normally" or
-           response["payload"]["reason"] == "exited-signalled")
+        if(reason == "exited-normally" or reason == "exited-signalled")
             throw ExitException("success");
 
+        if(reason == "watchpoint-trigger"){
+            sendResponse(responseUtils::createWatchTriggerStopResponse(
+                    response["payload"]["reason"],
+                    getGraph(),
+                    getCurrentPosition(),
+                    getWatchChanges(response)));
+
+            return;
+        }
 
         sendResponse(responseUtils::createStopResponse(
                 response["payload"]["reason"],
@@ -218,11 +244,27 @@ Position GraphDebugger::getCurrentPosition() {
     }
 }
 
+
 void GraphDebugger::attachToVertices(std::string variableName) {
-    this->vertexLoads.push_back(variableName);
+    this->vertexLoads.insert(variableName);
 
     sendResponse(responseUtils::createSetGraphResponse(true, getGraph()));
 }
+
+void GraphDebugger::detachFromVertices(std::string variableName) {
+    this->vertexLoads.erase(variableName);
+
+    sendResponse(responseUtils::createSetGraphResponse(true, getGraph()));
+}
+
+void GraphDebugger::setWatchOnVertex(int vertexIndex) {
+    for(const auto& load: this->vertexLoads) {
+        std::vector<json> responses = this->translator->executeCommand("-break-watch "+load + "[" + to_string(vertexIndex)+"]", 'h');
+    }
+
+    sendResponse(responseUtils::createBinaryResponse(true, "watchpoint is set"));
+}
+
 
 // todo: remove this later
 void GraphDebugger::debug() {
@@ -233,9 +275,6 @@ void GraphDebugger::debug() {
         cout << response << endl;
     }
 }
-
-
-
 
 
 

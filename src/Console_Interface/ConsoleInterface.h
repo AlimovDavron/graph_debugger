@@ -130,6 +130,19 @@ private:
     void parse_args(istringstream& inputStream) {}
 };
 
+class DetachFromVerticesCommandHandler : AbstractCommandHandler {
+public:
+    explicit DetachFromVerticesCommandHandler(GraphDebugger* graphDebugger) : AbstractCommandHandler(graphDebugger) {}
+    void execute(istringstream& inputStream) override {
+        std::string array;
+        inputStream >> array;
+        this->graphDebugger->detachFromVertices(array);
+    }
+
+private:
+    void parse_args(istringstream& inputStream) {}
+};
+
 class SetBkptCommandHandler : AbstractCommandHandler {
 public:
     explicit SetBkptCommandHandler(GraphDebugger* graphDebugger) : AbstractCommandHandler(graphDebugger) {}
@@ -144,11 +157,13 @@ private:
 };
 
 
-class SetWatchCommandHandler : AbstractCommandHandler {
+class SetWatchOnVertexCommandHandler : AbstractCommandHandler {
 public:
-    explicit SetWatchCommandHandler(GraphDebugger* graphDebugger) : AbstractCommandHandler(graphDebugger) {}
+    explicit SetWatchOnVertexCommandHandler(GraphDebugger* graphDebugger) : AbstractCommandHandler(graphDebugger) {}
     void execute(istringstream& inputStream) override {
-        cout << "step debugging \n";
+        int vertexIndex;
+        inputStream >> vertexIndex;
+        this->graphDebugger->setWatchOnVertex(vertexIndex);
     }
 
 private:
@@ -184,12 +199,13 @@ public:
                 {"dump",       (AbstractCommandHandler*) new DumpCommandHandler(graphDebugger)},
                 {"continue",   (AbstractCommandHandler*) new ContinueCommandHandler(graphDebugger)},
                 {"next",       (AbstractCommandHandler*) new NextCommandHandler(graphDebugger)},
-                {"set-watch",  (AbstractCommandHandler*) new SetWatchCommandHandler(graphDebugger)},
+                {"set-watch-on-vertex",  (AbstractCommandHandler*) new SetWatchOnVertexCommandHandler(graphDebugger)},
                 {"set-target", (AbstractCommandHandler*) new SetTargetCommandHandler(graphDebugger)},
                 {"start",      (AbstractCommandHandler*) new StartCommandHandler(graphDebugger)},
                 {"set-graph",  (AbstractCommandHandler*) new SetGraphCommandHandler(graphDebugger)},
                 {"set-bkpt", (AbstractCommandHandler*) new SetBkptCommandHandler(graphDebugger)},
                 {"attach-to-vertices", (AbstractCommandHandler*) new AttachToVerticesCommandHandler(graphDebugger)},
+                {"detach-from-vertices", (AbstractCommandHandler*) new DetachFromVerticesCommandHandler(graphDebugger)},
                 //todo: remove this later
                 {"debug", (AbstractCommandHandler*) new DebugCommandHandler(graphDebugger)}
                 //{"dump",       (AbstractCommandHandler*) new DumpCommandHandler(graphDebugger)},

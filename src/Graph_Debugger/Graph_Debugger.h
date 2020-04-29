@@ -6,6 +6,7 @@
 #define CORE_GRAPH_DEBUGGER_H
 
 #include <iostream>
+#include <set>
 #include "../GDB_Translator/GDB_MI_Translator.h"
 #include "GraphDebuggerExceptions.h"
 #include "../common/structures.h"
@@ -16,7 +17,7 @@ private:
     FILE* gdb;
     std::string graphVariableName = "";
     int numberOfVertices = -1;
-    vector<std::string> vertexLoads;
+    std::set<std::string> vertexLoads;
     bool targetIsSet;
 
     bool isVariableInLocals(std::string variableName);
@@ -43,6 +44,8 @@ public:
     void setBkpt(int);
     void debug();
     void attachToVertices(std::string);
+    void detachFromVertices(std::string);
+    void setWatchOnVertex(int);
 
 };
 

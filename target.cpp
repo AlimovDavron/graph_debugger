@@ -33,6 +33,11 @@ int main() {
     freopen("graph", "r", stdin);
     cin >> n;
 
+    int* toWatch = new int[5];
+    for(int i = 0; i < 5; i++){
+        toWatch[i] = i;
+    }
+
     int** graph = new int*[n];
     int* used = new int[n];
     int* permutation = new int[n];
@@ -41,6 +46,8 @@ int main() {
     permutation[2] = 3;
     permutation[3] = 1;
     permutation[4] = 5;
+
+    toWatch[2] = 5;
 
     Test* tests = new Test[n];
     for(int i = 0; i < n; i++){
@@ -67,6 +74,9 @@ int main() {
 
     dfs(graph, used, 0, n);
 
+    tests[2] = {55, 55};
+
+    *(tests+2) = {11, 11};
 
     show(graph, n);
     cout << "incremented " << endl;

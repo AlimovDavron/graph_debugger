@@ -10,7 +10,18 @@ struct Position{
     std::string file;
     std::string function;
 
-    Position(int line, std::string file, std::string function): line(line), file(file), function(function){}
+    Position(int line, std::string file, std::string function):
+            line(line), file(file), function(function){}
+};
+
+struct WatchChanges{
+    std::string oldValue;
+    std::string newValues;
+    std::string load;
+    int vertex;
+
+    WatchChanges(std::string oldValue, std::string newValues, std::string load, int vertex):
+            oldValue(oldValue), newValues(newValues), load(load), vertex(vertex){}
 };
 
 struct Graph{
