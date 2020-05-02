@@ -163,7 +163,7 @@ public:
     void execute(istringstream& inputStream) override {
         int vertexIndex;
         inputStream >> vertexIndex;
-        this->graphDebugger->setWatchOnVertex(vertexIndex);
+        this->graphDebugger->setWatchOnVertexHandler(vertexIndex);
     }
 
 private:

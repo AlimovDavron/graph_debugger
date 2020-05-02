@@ -38,59 +38,63 @@ WatchChanges GraphDebugger::getWatchChanges(const json& response){
                         this->vertexByWatchId[watchId].vertexIndex);
 }
 
-void GraphDebugger::handleMovementResponse(const json & response) {
-    if(response["type"] == "notify" && response["message"] == "stopped") {
+json GraphDebugger::handleMovementResponses(std::vector<json>& responses) {
+    for(const auto& response: responses) {
+        if (response["type"] == "notify" && response["message"] == "stopped") {
 
-        std::string reason = response["payload"]["reason"];
-        if(reason == "signal-received"){
-            sendResponse(responseUtils::createErrorStopResponse(
+            std::string reason = response["payload"]["reason"];
+            if (reason == "signal-received") {
+                return responseUtils::createErrorStopResponse(
+                        response["payload"]["reason"],
+                        response["payload"]["signal-meaning"],
+                        getGraph(),
+                        getCurrentPosition());
+            }
+
+            if (reason == "exited-normally" or reason == "exited-signalled")
+                throw ExitException("success");
+
+            if (reason == "watchpoint-trigger") {
+                return responseUtils::createWatchTriggerStopResponse(
+                        response["payload"]["reason"],
+                        getGraph(),
+                        getCurrentPosition(),
+                        getWatchChanges(response));
+            }
+
+            return responseUtils::createStopResponse(
                     response["payload"]["reason"],
-                    response["payload"]["signal-meaning"],
                     getGraph(),
-                    getCurrentPosition()));
-            return;
+                    getCurrentPosition());
         }
-
-        if(reason == "exited-normally" or reason == "exited-signalled")
-            throw ExitException("success");
-
-        if(reason == "watchpoint-trigger"){
-            sendResponse(responseUtils::createWatchTriggerStopResponse(
-                    response["payload"]["reason"],
-                    getGraph(),
-                    getCurrentPosition(),
-                    getWatchChanges(response)));
-
-            return;
-        }
-
-        sendResponse(responseUtils::createStopResponse(
-                response["payload"]["reason"],
-                getGraph(),
-                getCurrentPosition()));
     }
+}
+
+json GraphDebugger::startHandler() {
+    std::vector<json> responses = this->translator->executeCommand("-exec-run --start", 's');
+    return handleMovementResponses(responses);
 }
 
 void GraphDebugger::start() {
-    std::vector<json> responses = this->translator->executeCommand("-exec-run --start", 's');
-    for(const auto& response: responses){
-        handleMovementResponse(response);
-    }
+    sendResponse(startHandler());
+}
 
+json GraphDebugger::continueHandler() {
+    std::vector<json> responses = this->translator->executeCommand("-exec-continue", 's');
+    return handleMovementResponses(responses);
 }
 
 void GraphDebugger::continue_() {
-    std::vector<json> responses = this->translator->executeCommand("-exec-continue", 's');
-    for(const auto& response: responses){
-        handleMovementResponse(response);
-    }
+    sendResponse(continueHandler());
+}
+
+json GraphDebugger::nextHandler() {
+    std::vector<json> responses = this->translator->executeCommand("next", 's');
+    return handleMovementResponses(responses);
 }
 
 void GraphDebugger::next() {
-    std::vector<json> responses = this->translator->executeCommand("next", 's');
-    for(const auto& response: responses){
-        handleMovementResponse(response);
-    }
+    sendResponse(nextHandler());
 }
 
 static std::string getVariableName(std::string response){
@@ -100,20 +104,6 @@ static std::string getVariableName(std::string response){
     } else {
         return response.substr(0, pos);
     }
-}
-
-bool GraphDebugger::isVariableInLocals(std::string variableName){
-    std::vector<json> responses = this->translator->executeCommand("info locals", 'h');
-
-    for (const auto &response: responses) {
-        if(response["type"] == "console") {
-            if(getVariableName(response["payload"]) == variableName) {
-                return true;
-            }
-        }
-    }
-
-    return false;
 }
 
 std::string GraphDebugger::getAddressOfVariable(const std::string& variableName) {
@@ -305,7 +295,7 @@ void GraphDebugger::detachFromVertices(std::string variableName) {
     sendResponse(responseUtils::createSetGraphResponse(true, getGraph()));
 }
 
-void GraphDebugger::setWatchOnVertex(int vertexIndex) {
+void GraphDebugger::setWatchOnVertexHandler(int vertexIndex){
     this->beingWatchedVertices.insert(vertexIndex);
 
     for(const auto& load: this->vertexLoads) {
@@ -320,6 +310,10 @@ void GraphDebugger::setWatchOnVertex(int vertexIndex) {
             }
         }
     }
+}
+
+void GraphDebugger::setWatchOnVertex(int vertexIndex) {
+    setWatchOnVertex(vertexIndex);
 
     sendResponse(responseUtils::createBinaryResponse(true, "watchpoint is set"));
 }
@@ -334,6 +328,10 @@ void GraphDebugger::debug() {
         cout << response << endl;
     }
 }
+
+
+
+
 
 
 

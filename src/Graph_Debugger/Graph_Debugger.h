@@ -33,9 +33,13 @@ private:
     std::string getTypeOfVariable(const std::string&);
     Position getCurrentPosition();
     std::string getElementOfArray(const VertexLoad&, int);
-    void handleMovementResponse(const json&);
+    json handleMovementResponses(std::vector<json>&);
     WatchChanges getWatchChanges(const json& response);
     void removeWatch(const int& watchId);
+    void setWatchOnVertexHandler(int);
+    json continueHandler();
+    json nextHandler();
+    json startHandler();
 
 public:
     GraphDebugger(int FIFOFileDescriptor, FILE *gdb){
