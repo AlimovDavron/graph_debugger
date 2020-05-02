@@ -313,9 +313,19 @@ void GraphDebugger::setWatchOnVertexHandler(int vertexIndex){
 }
 
 void GraphDebugger::setWatchOnVertex(int vertexIndex) {
-    setWatchOnVertex(vertexIndex);
+    setWatchOnVertexHandler(vertexIndex);
 
     sendResponse(responseUtils::createBinaryResponse(true, "watchpoint is set"));
+}
+
+void GraphDebugger::removeWatchFromVertexHandler(int) {
+    
+}
+
+void GraphDebugger::removeWatchFromVertex(int vertexIndex) {
+    removeWatchFromVertexHandler(vertexIndex);
+
+    sendResponse(responseUtils::createBinaryResponse(true, "done"));
 }
 
 
@@ -328,6 +338,8 @@ void GraphDebugger::debug() {
         cout << response << endl;
     }
 }
+
+
 
 
 

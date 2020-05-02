@@ -37,6 +37,7 @@ private:
     WatchChanges getWatchChanges(const json& response);
     void removeWatch(const int& watchId);
     void setWatchOnVertexHandler(int);
+    void removeWatchFromVertexHandler(int);
     json continueHandler();
     json nextHandler();
     json startHandler();
@@ -58,6 +59,7 @@ public:
     void attachToVertices(std::string);
     void detachFromVertices(std::string);
     void setWatchOnVertex(int);
+    void removeWatchFromVertex(int);
 
 };
 

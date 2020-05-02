@@ -32,7 +32,6 @@ public:
     void operator()(istringstream& inputStream) {
         execute(inputStream);
     }
-
 };
 
 
@@ -76,7 +75,6 @@ public:
     void execute(istringstream& inputStream) override {
         this->graphDebugger->next();
     }
-
 };
 
 class SetTargetCommandHandler : AbstractCommandHandler {
@@ -87,9 +85,6 @@ public:
         inputStream >> target;
         this->graphDebugger->setTarget(target);
     }
-
-private:
-    void parse_args(istringstream& inputStream) {}
 };
 
 class StartCommandHandler : AbstractCommandHandler {
@@ -98,9 +93,6 @@ public:
     void execute(istringstream& inputStream) override {
         this->graphDebugger->start();
     }
-
-private:
-    void parse_args(istringstream& inputStream) {}
 };
 
 class SetGraphCommandHandler : AbstractCommandHandler {
@@ -112,9 +104,6 @@ public:
         inputStream >> graph >> numberOfVertices;
         this->graphDebugger->setGraph(graph, numberOfVertices);
     }
-
-private:
-    void parse_args(istringstream& inputStream) {}
 };
 
 class AttachToVerticesCommandHandler : AbstractCommandHandler {
@@ -125,9 +114,6 @@ public:
         inputStream >> array;
         this->graphDebugger->attachToVertices(array);
     }
-
-private:
-    void parse_args(istringstream& inputStream) {}
 };
 
 class DetachFromVerticesCommandHandler : AbstractCommandHandler {
@@ -138,9 +124,6 @@ public:
         inputStream >> array;
         this->graphDebugger->detachFromVertices(array);
     }
-
-private:
-    void parse_args(istringstream& inputStream) {}
 };
 
 class SetBkptCommandHandler : AbstractCommandHandler {
@@ -151,9 +134,6 @@ public:
         inputStream >> lineNumber;
         this->graphDebugger->setBkpt(lineNumber);
     }
-
-private:
-    void parse_args(istringstream& inputStream) {}
 };
 
 
@@ -163,11 +143,18 @@ public:
     void execute(istringstream& inputStream) override {
         int vertexIndex;
         inputStream >> vertexIndex;
-        this->graphDebugger->setWatchOnVertexHandler(vertexIndex);
+        this->graphDebugger->setWatchOnVertex(vertexIndex);
     }
+};
 
-private:
-    void parse_args(istringstream& inputStream) {}
+class RemoveWatchFromVertexCommandHandler : AbstractCommandHandler {
+public:
+    explicit RemoveWatchFromVertexCommandHandler(GraphDebugger* graphDebugger) : AbstractCommandHandler(graphDebugger) {}
+    void execute(istringstream& inputStream) override {
+        int vertexIndex;
+        inputStream >> vertexIndex;
+        this->graphDebugger->removeWatchFromVertex(vertexIndex);
+    }
 };
 
 
@@ -200,6 +187,7 @@ public:
                 {"continue",   (AbstractCommandHandler*) new ContinueCommandHandler(graphDebugger)},
                 {"next",       (AbstractCommandHandler*) new NextCommandHandler(graphDebugger)},
                 {"set-watch-on-vertex",  (AbstractCommandHandler*) new SetWatchOnVertexCommandHandler(graphDebugger)},
+                {"remove-watch-from-vertex", (AbstractCommandHandler*) new RemoveWatchFromVertexCommandHandler(graphDebugger)},
                 {"set-target", (AbstractCommandHandler*) new SetTargetCommandHandler(graphDebugger)},
                 {"start",      (AbstractCommandHandler*) new StartCommandHandler(graphDebugger)},
                 {"set-graph",  (AbstractCommandHandler*) new SetGraphCommandHandler(graphDebugger)},
