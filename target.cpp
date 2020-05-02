@@ -76,9 +76,10 @@ int main() {
 
     tests[2] = {55, 55};
 
-    *(tests+2) = {11, 11};
 
     show(graph, n);
+    *(tests+2) = {11, 11};
+
     cout << "incremented " << endl;
     show(graph, n);
 

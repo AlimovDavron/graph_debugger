@@ -30,21 +30,12 @@ void GraphDebugger::setTarget(const std::string& target) {
     }
 }
 
-int getVertexNumber(const std::string& expression){
-    size_t os(expression.find('[')), cs(expression.find(']'));
-    return (int)stoi(expression.substr(os+1, cs - os - 1), NULL, 10);
-}
-
-std::string getLoad(const std::string& expression){
-    return expression.substr(0, expression.find('['));
-}
-
-static WatchChanges getWatchChanges(const json& response){
-    std::string expression = response["payload"]["wpt"]["exp"];
+WatchChanges GraphDebugger::getWatchChanges(const json& response){
+    int watchId = (int)stoi((string)response["payload"]["wpt"]["number"], NULL, 10);
     return WatchChanges(response["payload"]["value"]["old"],
                         response["payload"]["value"]["new"],
-                        getLoad(expression),
-                        getVertexNumber(expression));
+                        this->vertexByWatchId[watchId].load,
+                        this->vertexByWatchId[watchId].vertexIndex);
 }
 
 void GraphDebugger::handleMovementResponse(const json & response) {
@@ -137,9 +128,34 @@ std::string GraphDebugger::getAddressOfVariable(const std::string& variableName)
     }
 }
 
-std::string GraphDebugger::getElementOfArray(const std::string& variableName, int index) {
+std::string GraphDebugger::getValueOfVariable(const std::string& variableName) {
+    std::vector<json> responses = this->translator->executeCommand("-data-evaluate-expression " + variableName, 'h');
+    for (const auto &response: responses) {
+        if(response["type"] ==  "result"){
+            if(response["message"] ==  "done"){
+                return response["payload"]["value"];
+            }
+            // todo: handle error
+        }
+    }
+}
+
+std::string GraphDebugger::getTypeOfVariable(const std::string& variableName) {
+    std::vector<json> responses = this->translator->executeCommand("whatis " + variableName, 'h');
+    for (const auto &response: responses) {
+        if(response["type"] == "console"){
+            std::string payload = response["payload"];
+            size_t pos_eq = payload.find('='); pos_eq+=2;
+            return payload.substr(pos_eq, payload.find(' ', pos_eq) - pos_eq);
+        }
+    }
+}
+
+std::string GraphDebugger::getElementOfArray(const VertexLoad& load, int index) {
     std::vector<json> responses = this->translator->
-            executeCommand("-data-evaluate-expression *(" + variableName + "+" + to_string(index) + ")", 'h');
+            executeCommand("-data-evaluate-expression (" +
+            load.type + ")*("+ load.address+"+"+std::to_string(index)+"*sizeof(" + load.type+"))", 'h');
+
     for (const auto &response: responses) {
         if(response["type"] ==  "result"){
             if(response["message"] ==  "done"){
@@ -173,13 +189,13 @@ Graph GraphDebugger::getGraph() {
     }
 
 
-    for(const auto& variableName: this->vertexLoads){
+    for(const auto& load: this->vertexLoads){
         vector<std::string> values(this->numberOfVertices, "");
         for(i = 0; i < this->numberOfVertices; i++){
-            values[i] = getElementOfArray(variableName, i);
+            values[i] = getElementOfArray(load, i);
         }
 
-        loads[variableName] = values;
+        loads[load.variableName] = values;
     }
 
     return Graph(adjacencyMatrix, loads);
@@ -246,20 +262,50 @@ Position GraphDebugger::getCurrentPosition() {
 
 
 void GraphDebugger::attachToVertices(std::string variableName) {
-    this->vertexLoads.insert(variableName);
+    std::string address = getValueOfVariable(variableName);
+    std::string type = getTypeOfVariable(variableName);
+    this->vertexLoads.insert(VertexLoad(variableName,
+                             address,
+                             type));
+
+    this->watchIdByVertex[variableName] = std::vector<int>(this->numberOfVertices, -1);
+
+    for(const auto& vertexIndex: this->beingWatchedVertices) {
+        std::vector<json> responses = this->translator->
+                executeCommand("watch *(" + type + " *) (" + address + "+" + to_string(vertexIndex) + "*sizeof(" + type + "))", 'h');
+
+        for(const auto& response: responses){
+            if(response["type"] == "notify"){
+                int watchId = (int)stoi((string)response["payload"]["bkpt"]["number"], NULL, 10);
+                this->vertexByWatchId[watchId] = {variableName, vertexIndex};
+                this->watchIdByVertex[variableName][vertexIndex] = watchId;
+            }
+        }
+    }
 
     sendResponse(responseUtils::createSetGraphResponse(true, getGraph()));
 }
 
 void GraphDebugger::detachFromVertices(std::string variableName) {
-    this->vertexLoads.erase(variableName);
+    this->vertexLoads.erase(VertexLoad(variableName, "", ""));
 
     sendResponse(responseUtils::createSetGraphResponse(true, getGraph()));
 }
 
 void GraphDebugger::setWatchOnVertex(int vertexIndex) {
+    this->beingWatchedVertices.insert(vertexIndex);
+
     for(const auto& load: this->vertexLoads) {
-        std::vector<json> responses = this->translator->executeCommand("-break-watch "+load + "[" + to_string(vertexIndex)+"]", 'h');
+        std::vector<json> responses = this->translator->
+                executeCommand("watch *(" + load.type + " *) (" + load.address + "+" + to_string(vertexIndex) + "*sizeof(" + load.type + "))", 'h');
+
+        for(const auto& response: responses){
+            if(response["type"] == "notify"){
+                int watchId = (int)stoi((string)response["payload"]["bkpt"]["number"], NULL, 10);
+                this->vertexByWatchId[watchId] = VertexWatch(load.variableName, vertexIndex);
+                this->watchIdByVertex[load.variableName][vertexIndex] = watchId;
+            }
+        }
     }
 
     sendResponse(responseUtils::createBinaryResponse(true, "watchpoint is set"));

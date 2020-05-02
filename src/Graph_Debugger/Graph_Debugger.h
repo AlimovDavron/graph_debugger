@@ -17,17 +17,24 @@ private:
     FILE* gdb;
     std::string graphVariableName = "";
     int numberOfVertices = -1;
-    std::set<std::string> vertexLoads;
+    std::set<VertexLoad> vertexLoads;
     bool targetIsSet;
+    std::set<int> beingWatchedVertices;
+    std::map<int, VertexWatch> vertexByWatchId;
+    std::map<std::string, std::vector<int>> watchIdByVertex;
 
     bool isVariableInLocals(std::string variableName);
     std::string getAddressOfVariable(const std::string& variableName);
+    std::string offsetAddress(VertexLoad load, int offset);
+    std::string getValueOfVariable(const std::string& variableName);
     std::string getValueByAddress(std::string address, int offset, int count);
     std::vector<std::string> getValuesByAddress(std::string address, int n = 1, int count = 8);
     Graph getGraph();
+    std::string getTypeOfVariable(const std::string&);
     Position getCurrentPosition();
-    std::string getElementOfArray(const std::string&, int);
+    std::string getElementOfArray(const VertexLoad&, int);
     void handleMovementResponse(const json&);
+    WatchChanges getWatchChanges(const json& response);
 
 public:
     GraphDebugger(int FIFOFileDescriptor, FILE *gdb){
