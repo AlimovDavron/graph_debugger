@@ -174,9 +174,8 @@ Graph GraphDebugger::getGraph() {
     std::vector<std::vector<int>> adjacencyMatrix(this->numberOfVertices, vector<int>(this->numberOfVertices));
     map<std::string, std::vector<std::string>> loads;
 
-    std::string addressOfPointerToAdjacencyMatrix = getAddressOfVariable(this->graphVariableName);
     std::vector<std::string> pointersToAdjacencyMatrixLines =
-            getValuesByAddress(getValueByAddress(addressOfPointerToAdjacencyMatrix, 0, 8), numberOfVertices);
+            getValuesByAddress(getValueByAddress(this->addressOfVariable, 0, 8), numberOfVertices);
 
     int i = 0, j = 0;
     for(const auto& pointerToLine: pointersToAdjacencyMatrixLines){
@@ -204,6 +203,7 @@ Graph GraphDebugger::getGraph() {
 void GraphDebugger::setGraph(std::string graph, int n) {
     this->graphVariableName = graph;
     this->numberOfVertices = n;
+    this->addressOfVariable = getAddressOfVariable(graph);
 
     sendResponse(responseUtils::createSetGraphResponse(true, getGraph()));
 }
@@ -286,8 +286,21 @@ void GraphDebugger::attachToVertices(std::string variableName) {
     sendResponse(responseUtils::createSetGraphResponse(true, getGraph()));
 }
 
+void GraphDebugger::removeWatch(const int &watchId) {
+    std::vector<json> responses = this->translator-> executeCommand("delete " + std::to_string(watchId), 'h');
+}
+
+
 void GraphDebugger::detachFromVertices(std::string variableName) {
     this->vertexLoads.erase(VertexLoad(variableName, "", ""));
+
+    for(const auto& watchId: this->watchIdByVertex[variableName]){
+        if(watchId == -1)
+            continue;
+
+        this->vertexByWatchId.erase(watchId);
+        removeWatch(watchId);
+    }
 
     sendResponse(responseUtils::createSetGraphResponse(true, getGraph()));
 }
@@ -321,6 +334,7 @@ void GraphDebugger::debug() {
         cout << response << endl;
     }
 }
+
 
 
 

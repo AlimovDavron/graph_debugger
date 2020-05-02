@@ -15,7 +15,8 @@ class GraphDebugger {
 private:
     GDB_MI_Translator* translator;
     FILE* gdb;
-    std::string graphVariableName = "";
+    std::string graphVariableName;
+    std::string addressOfVariable;
     int numberOfVertices = -1;
     std::set<VertexLoad> vertexLoads;
     bool targetIsSet;
@@ -25,7 +26,6 @@ private:
 
     bool isVariableInLocals(std::string variableName);
     std::string getAddressOfVariable(const std::string& variableName);
-    std::string offsetAddress(VertexLoad load, int offset);
     std::string getValueOfVariable(const std::string& variableName);
     std::string getValueByAddress(std::string address, int offset, int count);
     std::vector<std::string> getValuesByAddress(std::string address, int n = 1, int count = 8);
@@ -35,6 +35,7 @@ private:
     std::string getElementOfArray(const VertexLoad&, int);
     void handleMovementResponse(const json&);
     WatchChanges getWatchChanges(const json& response);
+    void removeWatch(const int& watchId);
 
 public:
     GraphDebugger(int FIFOFileDescriptor, FILE *gdb){
