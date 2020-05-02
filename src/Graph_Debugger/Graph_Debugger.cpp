@@ -318,8 +318,13 @@ void GraphDebugger::setWatchOnVertex(int vertexIndex) {
     sendResponse(responseUtils::createBinaryResponse(true, "watchpoint is set"));
 }
 
-void GraphDebugger::removeWatchFromVertexHandler(int) {
-    
+void GraphDebugger::removeWatchFromVertexHandler(int vertexIndex) {
+    for(const auto& load: this->vertexLoads) {
+        int watchId = this->watchIdByVertex[load.variableName][vertexIndex];
+        removeWatch(watchId);
+        this->watchIdByVertex[load.variableName][vertexIndex] = -1;
+        this->vertexByWatchId.erase(watchId);
+    }
 }
 
 void GraphDebugger::removeWatchFromVertex(int vertexIndex) {
