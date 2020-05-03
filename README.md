@@ -1,6 +1,4 @@
-# graph_debugger
-
-### Usage
+# Usage
 ## build core 
 ```bash
 git clone https://github.com/pybind/pybind11.git
