@@ -7,7 +7,6 @@ include_directories(${PYTHON_INCLUDE_DIRS})
 
 add_subdirectory(pybind11)
 
-add_executable(target target.cpp)
 configure_file(graph graph COPYONLY)
 file(COPY pygdbmi
               DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
