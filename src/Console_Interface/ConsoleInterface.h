@@ -39,25 +39,9 @@ class DumpCommandHandler : AbstractCommandHandler {
 public:
     explicit DumpCommandHandler(GraphDebugger* graphDebugger) : AbstractCommandHandler(graphDebugger) {}
     void execute(istringstream& inputStream) override {
-        cout << "dumping \n";
-        Input input = parse_args(inputStream);
-        cout << input.path_to_executable_file << " " << input.path_to_graph_data << "\n";
-    }
-
-private:
-    struct Input {
-    public:
-        Input(string path_to_executable_file, string path_to_graph_data) :
-                path_to_executable_file(path_to_executable_file), path_to_graph_data(path_to_graph_data) {}
-
-
-        string path_to_executable_file;
-        string path_to_graph_data;
-    };
-    Input parse_args(istringstream& inputStream) {
-        string exc_file, path_to_graph_data;
-        inputStream >> exc_file >> path_to_graph_data;
-        return Input(exc_file, path_to_graph_data);
+        std::string path;
+        inputStream >> path;
+        this->graphDebugger->dump(path);
     }
 };
 

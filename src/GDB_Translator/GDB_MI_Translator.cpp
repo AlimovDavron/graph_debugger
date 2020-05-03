@@ -111,3 +111,8 @@ std::vector<json> GDB_MI_Translator::executeCommand(std::string command, char mo
         return readGDMIResponseUntilStop();
     }
 }
+
+void GDB_MI_Translator::executeCommandNoJSON(std::string command) {
+    fprintf(gdb, "%s\n", command.c_str());
+    fflush(gdb);
+}

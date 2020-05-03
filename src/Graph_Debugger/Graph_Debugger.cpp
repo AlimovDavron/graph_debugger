@@ -2,16 +2,59 @@
 // Created by alimovdavron on 11/12/19.
 //
 
+#include <fstream>
 #include "Graph_Debugger.h"
 #include "../utils/responseUtils.h"
 using namespace responseUtils;
 
-void GraphDebugger::dump() {
-
-}
-
 static void sendResponse(const json& response){
     cout << response << endl;
+}
+
+void GraphDebugger::dump(std::string path) {
+    if(checkGraph() && checkStart() && checkTarget()) {
+        std::ofstream dumpStream;
+        dumpStream.open(path);
+        for (int i = 0; i < this->numberOfVertices; i++) {
+            setWatchOnVertexHandler(i);
+        }
+        try {
+            while (true) {
+                dumpStream << continueHandler() << endl;
+                dumpStream.flush();
+            }
+        } catch (ExitException &exception) {
+            dumpStream.close();
+            throw ExitException(responseUtils::createBinaryResponse(true, "done").dump());
+        }
+    }
+}
+
+bool GraphDebugger::checkTarget(){
+    if(this->targetIsSet){
+        return true;
+    } else {
+        sendResponse(responseUtils::createBinaryResponse(false, "Target isn't set"));
+        return false;
+    }
+}
+
+bool GraphDebugger::checkStart(){
+    if(this->isStarted){
+        return true;
+    } else {
+        sendResponse(responseUtils::createBinaryResponse(false, "Program isn't started"));
+        return false;
+    }
+}
+
+bool GraphDebugger::checkGraph() {
+    if (this->numberOfVertices != -1) {
+        return true;
+    } else {
+        sendResponse(responseUtils::createBinaryResponse(false, "Graph isn't set"));
+        return false;
+    }
 }
 
 void GraphDebugger::setTarget(const std::string& target) {
@@ -52,7 +95,7 @@ json GraphDebugger::handleMovementResponses(std::vector<json>& responses) {
             }
 
             if (reason == "exited-normally" or reason == "exited-signalled")
-                throw ExitException("success");
+                throw ExitException(json({{"reason", reason}}).dump());
 
             if (reason == "watchpoint-trigger") {
                 return responseUtils::createWatchTriggerStopResponse(
@@ -76,7 +119,10 @@ json GraphDebugger::startHandler() {
 }
 
 void GraphDebugger::start() {
-    sendResponse(startHandler());
+    if(checkTarget()){
+        this->isStarted = true;
+        sendResponse(startHandler());
+    }
 }
 
 json GraphDebugger::continueHandler() {
@@ -85,7 +131,9 @@ json GraphDebugger::continueHandler() {
 }
 
 void GraphDebugger::continue_() {
-    sendResponse(continueHandler());
+    if(checkTarget() && checkStart()) {
+        sendResponse(continueHandler());
+    }
 }
 
 json GraphDebugger::nextHandler() {
@@ -94,15 +142,8 @@ json GraphDebugger::nextHandler() {
 }
 
 void GraphDebugger::next() {
-    sendResponse(nextHandler());
-}
-
-static std::string getVariableName(std::string response){
-    size_t pos = response.find(' ');
-    if(pos == std::string::npos){
-        return response;
-    } else {
-        return response.substr(0, pos);
+    if(checkTarget() && checkStart()) {
+        sendResponse(nextHandler());
     }
 }
 
@@ -191,11 +232,13 @@ Graph GraphDebugger::getGraph() {
 }
 
 void GraphDebugger::setGraph(std::string graph, int n) {
-    this->graphVariableName = graph;
-    this->numberOfVertices = n;
-    this->addressOfVariable = getAddressOfVariable(graph);
+    if(checkTarget() && checkStart()) {
+        this->graphVariableName = graph;
+        this->numberOfVertices = n;
+        this->addressOfVariable = getAddressOfVariable(graph);
 
-    sendResponse(responseUtils::createSetGraphResponse(true, getGraph()));
+        sendResponse(responseUtils::createSetGraphResponse(true, getGraph()));
+    }
 }
 
 // todo: Danger zone! Following code works only on 64 bit architecture
@@ -226,13 +269,15 @@ std::string GraphDebugger::getValueByAddress(std::string address, int offset, in
 }
 
 void GraphDebugger::setBkpt(int lineNumber) {
-    std::vector<json> responses = this->translator->
-            executeCommand("-break-insert " + std::to_string(lineNumber), 'h');
+    if(checkTarget()) {
+        std::vector <json> responses = this->translator->
+                executeCommand("-break-insert " + std::to_string(lineNumber), 'h');
 
-    for(const auto& response: responses){
-        if(response["type"] == "result"){
-            sendResponse(responseUtils::createBinaryResponse(response["message"] == "done", response["message"]));
-            return;
+        for (const auto &response: responses) {
+            if (response["type"] == "result") {
+                sendResponse(responseUtils::createBinaryResponse(response["message"] == "done", response["message"]));
+                return;
+            }
         }
     }
 }
@@ -252,36 +297,40 @@ Position GraphDebugger::getCurrentPosition() {
 
 
 void GraphDebugger::attachToVertices(std::string variableName) {
-    std::string address = getValueOfVariable(variableName);
-    std::string type = getTypeOfVariable(variableName);
-    this->vertexLoads.insert(VertexLoad(variableName,
-                             address,
-                             type));
+    if(checkTarget() && checkGraph()) {
+        std::string address = getValueOfVariable(variableName);
+        std::string type = getTypeOfVariable(variableName);
+        this->vertexLoads.insert(VertexLoad(variableName,
+                                            address,
+                                            type));
 
-    this->watchIdByVertex[variableName] = std::vector<int>(this->numberOfVertices, -1);
+        this->watchIdByVertex[variableName] = std::vector<int>(this->numberOfVertices, -1);
 
-    for(const auto& vertexIndex: this->beingWatchedVertices) {
-        std::vector<json> responses = this->translator->
-                executeCommand("watch *(" + type + " *) (" + address + "+" + to_string(vertexIndex) + "*sizeof(" + type + "))", 'h');
+        for (const auto &vertexIndex: this->beingWatchedVertices) {
+            std::vector<json> responses = this->translator->
+                    executeCommand(
+                    "watch *(" + type + " *) (" + address + "+" + to_string(vertexIndex) + "*sizeof(" + type + "))",
+                    'h');
 
-        for(const auto& response: responses){
-            if(response["type"] == "notify"){
-                int watchId = (int)stoi((string)response["payload"]["bkpt"]["number"], NULL, 10);
-                this->vertexByWatchId[watchId] = {variableName, vertexIndex};
-                this->watchIdByVertex[variableName][vertexIndex] = watchId;
+            for (const auto &response: responses) {
+                if (response["type"] == "notify") {
+                    int watchId = (int) stoi((string) response["payload"]["bkpt"]["number"], NULL, 10);
+                    this->vertexByWatchId[watchId] = {variableName, vertexIndex};
+                    this->watchIdByVertex[variableName][vertexIndex] = watchId;
+                }
             }
         }
-    }
 
-    sendResponse(responseUtils::createSetGraphResponse(true, getGraph()));
+        sendResponse(responseUtils::createSetGraphResponse(true, getGraph()));
+
+    }
 }
 
 void GraphDebugger::removeWatch(const int &watchId) {
-    std::vector<json> responses = this->translator-> executeCommand("delete " + std::to_string(watchId), 'h');
+    std::vector<json> responses = this->translator->executeCommand("delete " + std::to_string(watchId), 'h');
 }
 
-
-void GraphDebugger::detachFromVertices(std::string variableName) {
+json GraphDebugger::detachFromVerticesHandler(std::string variableName) {
     this->vertexLoads.erase(VertexLoad(variableName, "", ""));
 
     for(const auto& watchId: this->watchIdByVertex[variableName]){
@@ -292,10 +341,18 @@ void GraphDebugger::detachFromVertices(std::string variableName) {
         removeWatch(watchId);
     }
 
-    sendResponse(responseUtils::createSetGraphResponse(true, getGraph()));
+    return responseUtils::createSetGraphResponse(true, getGraph());
+}
+
+void GraphDebugger::detachFromVertices(std::string variableName) {
+    if(checkTarget() && checkStart() && checkGraph())
+        sendResponse(detachFromVerticesHandler(variableName));
 }
 
 void GraphDebugger::setWatchOnVertexHandler(int vertexIndex){
+    if(this->beingWatchedVertices.find(vertexIndex) != this->beingWatchedVertices.end())
+        return;
+
     this->beingWatchedVertices.insert(vertexIndex);
 
     for(const auto& load: this->vertexLoads) {
@@ -313,9 +370,10 @@ void GraphDebugger::setWatchOnVertexHandler(int vertexIndex){
 }
 
 void GraphDebugger::setWatchOnVertex(int vertexIndex) {
-    setWatchOnVertexHandler(vertexIndex);
-
-    sendResponse(responseUtils::createBinaryResponse(true, "watchpoint is set"));
+    if(checkTarget() && checkStart() && checkGraph()) {
+        setWatchOnVertexHandler(vertexIndex);
+        sendResponse(responseUtils::createBinaryResponse(true, "watchpoint is set"));
+    }
 }
 
 void GraphDebugger::removeWatchFromVertexHandler(int vertexIndex) {
@@ -325,12 +383,14 @@ void GraphDebugger::removeWatchFromVertexHandler(int vertexIndex) {
         this->watchIdByVertex[load.variableName][vertexIndex] = -1;
         this->vertexByWatchId.erase(watchId);
     }
+    this->beingWatchedVertices.erase(vertexIndex);
 }
 
 void GraphDebugger::removeWatchFromVertex(int vertexIndex) {
-    removeWatchFromVertexHandler(vertexIndex);
-
-    sendResponse(responseUtils::createBinaryResponse(true, "done"));
+    if(checkTarget() && checkStart() && checkGraph()) {
+        removeWatchFromVertexHandler(vertexIndex);
+        sendResponse(responseUtils::createBinaryResponse(true, "done"));
+    }
 }
 
 
@@ -343,6 +403,12 @@ void GraphDebugger::debug() {
         cout << response << endl;
     }
 }
+
+
+
+
+
+
 
 
 

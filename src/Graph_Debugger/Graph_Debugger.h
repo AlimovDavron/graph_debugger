@@ -19,12 +19,15 @@ private:
     std::string addressOfVariable;
     int numberOfVertices = -1;
     std::set<VertexLoad> vertexLoads;
-    bool targetIsSet;
+    bool targetIsSet, isStarted;
     std::set<int> beingWatchedVertices;
     std::map<int, VertexWatch> vertexByWatchId;
     std::map<std::string, std::vector<int>> watchIdByVertex;
 
     bool isVariableInLocals(std::string variableName);
+    bool checkTarget();
+    bool checkStart();
+    bool checkGraph();
     std::string getAddressOfVariable(const std::string& variableName);
     std::string getValueOfVariable(const std::string& variableName);
     std::string getValueByAddress(std::string address, int offset, int count);
@@ -41,6 +44,7 @@ private:
     json continueHandler();
     json nextHandler();
     json startHandler();
+    json detachFromVerticesHandler(std::string);
 
 public:
     GraphDebugger(int FIFOFileDescriptor, FILE *gdb){
@@ -50,7 +54,7 @@ public:
 
     void setTarget(const std::string& target);
     void start();
-    void dump();
+    void dump(std::string);
     void continue_();
     void next();
     void setGraph(std::string, int);

@@ -26,6 +26,8 @@ protected:
 public:
     GDB_MI_Translator(FILE* gdb, int fileDescriptorFIFO):gdb(gdb), fileDescriptorFIFO(fileDescriptorFIFO) {
         flushGDBMIResponse();
+        executeCommandNoJSON("set can-use-hw-watchpoints 0");
+        flushGDBMIResponse();
         outputParser = (AbstractGDBMIOutputParser*)new PyGDBMIParser();
     }
 
@@ -37,6 +39,7 @@ public:
     static std::vector<std::string> split(std::string a, const std::string& delimiter);
 
     std::vector<json> executeCommand(std::string command, char mode);
+    void executeCommandNoJSON(std::string command);
 };
 
 
