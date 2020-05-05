@@ -35,6 +35,7 @@ namespace responseUtils{
         return json({
             {"reason", reason},
             {"changes", {
+                  {"type", "vertex"},
                   {"vertex", changes.vertex},
                   {"load", changes.load},
                   {"old_value", changes.oldValue},
@@ -55,6 +56,7 @@ namespace responseUtils{
         return json({
             {"reason", reason},
             {"changes", {
+                {"type", "edge"},
                 {"from", changes.from},
                 {"to", changes.to},
                 {"load", changes.load},
