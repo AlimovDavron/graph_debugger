@@ -19,6 +19,10 @@
         } catch (ExitException &exception) {
             cout << exception.what() << endl;
             stop();
+        } catch (InputErrorException &exception) {
+            cout << exception.what() << endl;
+        } catch (ValidationError &exception) {
+            cout << exception.what() << endl;
         }
     }
 

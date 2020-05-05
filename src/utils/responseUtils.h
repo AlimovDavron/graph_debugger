@@ -26,26 +26,49 @@ namespace responseUtils{
                  {"func", position.function},
                  {"file", position.file}
             }},
-            {"loads", json(graph.vertexLoads)}
+            {"vertexLoads", json(graph.vertexLoads)},
+            {"edgeLoads", json(graph.edgeLoads)}
         });
     }
 
-    json createWatchTriggerStopResponse(std::string reason, Graph graph, Position position, WatchChanges changes){
+    json createVertexWatchTriggerStopResponse(std::string reason, Graph graph, Position position, VertexWatchChanges changes){
         return json({
             {"reason", reason},
             {"changes", {
-                 {"vertex", changes.vertex},
-                 {"load", changes.load},
-                 {"old_value", changes.oldValue},
-                 {"new_value", changes.newValues},
+                  {"vertex", changes.vertex},
+                  {"load", changes.load},
+                  {"old_value", changes.oldValue},
+                  {"new_value", changes.newValue},
             }},
             {"graph", json(graph.adjacencyMatrix)},
             {"position", {
-                 {"line", position.line},
-                 {"func", position.function},
-                 {"file", position.file}
+                  {"line", position.line},
+                  {"func", position.function},
+                  {"file", position.file}
             }},
-            {"loads", json(graph.vertexLoads)}
+            {"vertexLoads", json(graph.vertexLoads)},
+            {"edgeLoads", json(graph.edgeLoads)}
+        });
+    }
+
+    json createEdgeWatchTriggerStopResponse(std::string reason, Graph graph, Position position, EdgeWatchChanges changes){
+        return json({
+            {"reason", reason},
+            {"changes", {
+                {"from", changes.from},
+                {"to", changes.to},
+                {"load", changes.load},
+                {"old_value", changes.oldValue},
+                {"new_value", changes.newValue},
+             }},
+            {"graph", json(graph.adjacencyMatrix)},
+            {"position", {
+                {"line", position.line},
+                {"func", position.function},
+                {"file", position.file}
+             }},
+            {"vertexLoads", json(graph.vertexLoads)},
+            {"edgeLoads", json(graph.edgeLoads)}
         });
     }
 
@@ -59,7 +82,8 @@ namespace responseUtils{
                  {"func", position.function},
                  {"file", position.file}
             }},
-            {"loads", json(graph.vertexLoads)}
+            {"vertexLoads", json(graph.vertexLoads)},
+            {"edgeLoads", json(graph.edgeLoads)}
         });
     }
 
@@ -67,7 +91,8 @@ namespace responseUtils{
         return json({
             {"success", success},
             {"graph", json(graph.adjacencyMatrix)},
-            {"loads", json(graph.vertexLoads)}
+            {"vertexLoads", json(graph.vertexLoads)},
+            {"edgeLoads", json(graph.edgeLoads)}
         });
     }
 }

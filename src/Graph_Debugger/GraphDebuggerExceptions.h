@@ -21,11 +21,11 @@ public:
     }
 };
 
-class TargetException : public std::exception
+class ValidationError : public std::exception
 {
     std::string _msg;
 public:
-    TargetException(const std::string& msg) : _msg(msg){}
+    ValidationError(const std::string& msg) : _msg(msg){}
 
     virtual const char* what() const noexcept override
     {

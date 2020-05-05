@@ -73,12 +73,21 @@ void GraphDebugger::setTarget(const std::string& target) {
     }
 }
 
-WatchChanges GraphDebugger::getWatchChanges(const json& response){
+VertexWatchChanges GraphDebugger::getVertexWatchChanges(const json& response){
     int watchId = (int)stoi((string)response["payload"]["wpt"]["number"], NULL, 10);
-    return WatchChanges(response["payload"]["value"]["old"],
-                        response["payload"]["value"]["new"],
-                        this->vertexByWatchId[watchId].load,
-                        this->vertexByWatchId[watchId].vertexIndex);
+    return VertexWatchChanges(response["payload"]["value"]["old"],
+                              response["payload"]["value"]["new"],
+                              this->vertexByWatchId[watchId].load,
+                              this->vertexByWatchId[watchId].vertexIndex);
+}
+
+EdgeWatchChanges GraphDebugger::getEdgeWatchChanges(const json &response) {
+    int watchId = (int)stoi((string)response["payload"]["wpt"]["number"], NULL, 10);
+    return EdgeWatchChanges(response["payload"]["value"]["old"],
+                              response["payload"]["value"]["new"],
+                              this->edgeByWatchId[watchId].load,
+                              this->edgeByWatchId[watchId].from,
+                              this->edgeByWatchId[watchId].to);
 }
 
 json GraphDebugger::handleMovementResponses(std::vector<json>& responses) {
@@ -98,11 +107,21 @@ json GraphDebugger::handleMovementResponses(std::vector<json>& responses) {
                 throw ExitException(json({{"reason", reason}}).dump());
 
             if (reason == "watchpoint-trigger") {
-                return responseUtils::createWatchTriggerStopResponse(
-                        response["payload"]["reason"],
-                        getGraph(),
-                        getCurrentPosition(),
-                        getWatchChanges(response));
+                int watchId = (int)stoi((string)response["payload"]["wpt"]["number"], NULL, 10);
+                if(this->edgeByWatchId.find(watchId) == this->edgeByWatchId.end()){
+                    return responseUtils::createVertexWatchTriggerStopResponse(
+                            response["payload"]["reason"],
+                            getGraph(),
+                            getCurrentPosition(),
+                            getVertexWatchChanges(response));
+                } else {
+                    return responseUtils::createEdgeWatchTriggerStopResponse(
+                            response["payload"]["reason"],
+                            getGraph(),
+                            getCurrentPosition(),
+                            getEdgeWatchChanges(response));
+                }
+
             }
 
             return responseUtils::createStopResponse(
@@ -197,16 +216,33 @@ std::string GraphDebugger::getElementOfArray(const VertexLoad& load, int index) 
     }
 }
 
+
+std::string GraphDebugger::getElementOfEdgeArray(const EdgeLoad& load, int u, int v) {
+    std::vector<json> responses = this->translator->
+            executeCommand("-data-evaluate-expression (" +
+                           load.type + ")*("+ getValueByAddress(load.address, u*sizeof(void*), sizeof(void*))+"+"+std::to_string(v)+"*sizeof(" + load.type+"))", 'h');
+
+    for (const auto &response: responses) {
+        if(response["type"] ==  "result"){
+            if(response["message"] ==  "done"){
+                return response["payload"]["value"];
+            }
+            // todo: handle error
+        }
+    }
+}
+
 Graph GraphDebugger::getGraph() {
     if(numberOfVertices == -1){
         return Graph();
     }
 
     std::vector<std::vector<int>> adjacencyMatrix(this->numberOfVertices, vector<int>(this->numberOfVertices));
-    map<std::string, std::vector<std::string>> loads;
+    map<std::string, std::vector<std::string>> vertexLoads;
+    map<std::string, std::vector<std::vector<std::string>>> edgeLoads;
 
     std::vector<std::string> pointersToAdjacencyMatrixLines =
-            getValuesByAddress(getValueByAddress(this->addressOfVariable, 0, 8), numberOfVertices);
+            getValuesByAddress(getValueByAddress(this->addressOfVariable, 0, sizeof(void*)), numberOfVertices);
 
     int i = 0, j = 0;
     for(const auto& pointerToLine: pointersToAdjacencyMatrixLines){
@@ -218,17 +254,26 @@ Graph GraphDebugger::getGraph() {
         i++; j = 0;
     }
 
-
     for(const auto& load: this->vertexLoads){
         vector<std::string> values(this->numberOfVertices, "");
         for(i = 0; i < this->numberOfVertices; i++){
             values[i] = getElementOfArray(load, i);
         }
-
-        loads[load.variableName] = values;
+        vertexLoads[load.variableName] = values;
     }
 
-    return Graph(adjacencyMatrix, loads);
+    for(const auto& load: this->edgeLoads){
+        vector<vector<std::string>> values(this->numberOfVertices, vector<std::string>(this->numberOfVertices, ""));
+        for(i = 0; i < this->numberOfVertices; i++){
+            for(j = 0; j < this->numberOfVertices; j++) {
+                values[i][j] = getElementOfEdgeArray(load, i, j);
+            }
+        }
+        edgeLoads[load.variableName] = values;
+    }
+
+
+    return Graph(adjacencyMatrix, vertexLoads, edgeLoads);
 }
 
 void GraphDebugger::setGraph(std::string graph, int n) {
@@ -403,6 +448,110 @@ void GraphDebugger::debug() {
         cout << response << endl;
     }
 }
+
+void GraphDebugger::setWatchOnEdgeHandler(int from, int to) {
+    if(this->beingWatchedEdges.find({from, to}) != this->beingWatchedEdges.end())
+        return;
+
+    this->beingWatchedVertices.insert({from, to});
+
+    for(const auto& load: this->edgeLoads) {
+        std::vector<json> responses = this->translator->
+                executeCommand("watch *(" + load.type + " *) (" + getValueByAddress(load.address, from * sizeof(void *), sizeof(void *)) + "+" + to_string(to) + "*sizeof(" + load.type + "))", 'h');
+
+        for(const auto& response: responses){
+            if(response["type"] == "notify"){
+                int watchId = (int)stoi((string)response["payload"]["bkpt"]["number"], NULL, 10);
+                this->edgeByWatchId[watchId] = EdgeWatch(load.variableName, from, to);
+                this->watchIdByEdge[load.variableName][from][to] = watchId;
+            }
+        }
+    }
+}
+
+void GraphDebugger::setWatchOnEdge(int from, int to) {
+    if(checkTarget() && checkStart() && checkGraph()) {
+        if(from >= this->numberOfVertices or to >= this->numberOfVertices)
+            throw ValidationError(responseUtils::createBinaryResponse(false, "from and to parameters must be less than number of vertices").dump());
+
+        setWatchOnEdgeHandler(from, to);
+        sendResponse(responseUtils::createBinaryResponse(true, "watchpoint is set"));
+    }
+}
+
+void GraphDebugger::attachToEdges(std::string variableName) {
+    if(checkTarget() && checkGraph()) {
+        std::string address = getValueOfVariable(variableName);
+        std::string type = getTypeOfVariable(variableName);
+        this->edgeLoads.insert(EdgeLoad(variableName,
+                                            address,
+                                            type));
+
+        this->watchIdByEdge[variableName] =
+                std::vector<vector<int>>(this->numberOfVertices, vector<int>(this->numberOfVertices, -1));
+
+        for (const auto &edge: this->beingWatchedEdges) {
+            std::vector<json> responses;
+            responses = this->translator->
+                    executeCommand(
+                    "watch *(" + type + " *) (" +
+                    getValueByAddress(address, edge.first * sizeof(void *), sizeof(void *)) + "+" +
+                    to_string(edge.second) + "*sizeof(" + type + "))",
+                    'h');
+
+            for (const auto &response: responses) {
+                if (response["type"] == "notify") {
+                    int watchId = (int) stoi((string) response["payload"]["bkpt"]["number"], NULL, 10);
+                    this->edgeByWatchId[watchId] = {variableName, edge.first, edge.second};
+                    this->watchIdByEdge[variableName][edge.first][edge.second] = watchId;
+                }
+            }
+        }
+
+        sendResponse(responseUtils::createSetGraphResponse(true, getGraph()));
+
+    }
+}
+
+void GraphDebugger::detachFromEdges(std::string variableName) {
+    if(checkTarget() && checkStart() && checkGraph())
+        sendResponse(detachFromEdgesHandler(variableName));
+}
+
+void GraphDebugger::removeWatchFromEdgeHandler(int from, int to) {
+    for(const auto& load: this->edgeLoads) {
+        int watchId = this->watchIdByEdge[load.variableName][from][to];
+        removeWatch(watchId);
+        this->watchIdByEdge[load.variableName][from][to] = -1;
+        this->edgeByWatchId.erase(watchId);
+    }
+    this->beingWatchedEdges.erase({from, to});
+}
+
+void GraphDebugger::removeWatchFromEdge(int from, int to) {
+    if(checkTarget() && checkStart() && checkGraph()) {
+        removeWatchFromEdge(from, to);
+        sendResponse(responseUtils::createBinaryResponse(true, "done"));
+    }
+}
+
+json GraphDebugger::detachFromEdgesHandler(std::string variableName) {
+    this->edgeLoads.erase(EdgeLoad(variableName, "", ""));
+
+    for(const auto& line: this->watchIdByEdge[variableName]){
+        for(const auto& watchId: line) {
+            if (watchId == -1)
+                continue;
+
+            this->vertexByWatchId.erase(watchId);
+            removeWatch(watchId);
+        }
+    }
+
+    return responseUtils::createSetGraphResponse(true, getGraph());
+}
+
+
 
 
 

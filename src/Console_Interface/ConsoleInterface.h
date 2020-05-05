@@ -18,6 +18,7 @@
 #include "../../json.hpp"
 #include "../Graph_Debugger/Graph_Debugger.h"
 #include "../Graph_Debugger/GraphDebuggerExceptions.h"
+#include "ConsoleInterfaceExceptions.h"
 
 using namespace std;
 using json = nlohmann::json;
@@ -67,7 +68,9 @@ public:
     void execute(istringstream& inputStream) override {
         std::string target;
         inputStream >> target;
-        this->graphDebugger->setTarget(target);
+        if(inputStream.fail())
+            throw InputErrorException(json({{"success", false}, {"error", "wrong input"}}).dump());
+        else this->graphDebugger->setTarget(target);
     }
 };
 
@@ -86,6 +89,9 @@ public:
         std::string graph;
         int numberOfVertices;
         inputStream >> graph >> numberOfVertices;
+        if(inputStream.fail())
+            throw InputErrorException(json({{"success", false}, {"error", "wrong input"}}).dump());
+else
         this->graphDebugger->setGraph(graph, numberOfVertices);
     }
 };
@@ -96,7 +102,21 @@ public:
     void execute(istringstream& inputStream) override {
         std::string array;
         inputStream >> array;
-        this->graphDebugger->attachToVertices(array);
+        if(inputStream.fail())
+            throw InputErrorException(json({{"success", false}, {"error", "wrong input"}}).dump());
+        else this->graphDebugger->attachToVertices(array);
+    }
+};
+
+class AttachToEdgesCommandHandler : AbstractCommandHandler {
+public:
+    explicit AttachToEdgesCommandHandler(GraphDebugger* graphDebugger) : AbstractCommandHandler(graphDebugger) {}
+    void execute(istringstream& inputStream) override {
+        std::string array;
+        inputStream >> array;
+        if(inputStream.fail())
+            throw InputErrorException(json({{"success", false}, {"error", "wrong input"}}).dump());
+        else this->graphDebugger->attachToEdges(array);
     }
 };
 
@@ -106,9 +126,24 @@ public:
     void execute(istringstream& inputStream) override {
         std::string array;
         inputStream >> array;
-        this->graphDebugger->detachFromVertices(array);
+        if(inputStream.fail())
+            throw InputErrorException(json({{"success", false}, {"error", "wrong input"}}).dump());
+        else this->graphDebugger->detachFromVertices(array);
     }
 };
+
+class DetachFromEdgesCommandHandler : AbstractCommandHandler {
+public:
+    explicit DetachFromEdgesCommandHandler(GraphDebugger* graphDebugger) : AbstractCommandHandler(graphDebugger) {}
+    void execute(istringstream& inputStream) override {
+        std::string array;
+        inputStream >> array;
+        if(inputStream.fail())
+            throw InputErrorException(json({{"success", false}, {"error", "wrong input"}}).dump());
+        else this->graphDebugger->detachFromVertices(array);
+    }
+};
+
 
 class SetBkptCommandHandler : AbstractCommandHandler {
 public:
@@ -116,7 +151,9 @@ public:
     void execute(istringstream& inputStream) override {
         int lineNumber;
         inputStream >> lineNumber;
-        this->graphDebugger->setBkpt(lineNumber);
+        if(inputStream.fail())
+            throw InputErrorException(json({{"success", false}, {"error", "wrong input"}}).dump());
+        else this->graphDebugger->setBkpt(lineNumber);
     }
 };
 
@@ -127,7 +164,21 @@ public:
     void execute(istringstream& inputStream) override {
         int vertexIndex;
         inputStream >> vertexIndex;
-        this->graphDebugger->setWatchOnVertex(vertexIndex);
+        if(inputStream.fail())
+            throw InputErrorException(json({{"success", false}, {"error", "wrong input"}}).dump());
+        else this->graphDebugger->setWatchOnVertex(vertexIndex);
+    }
+};
+
+class SetWatchOnEdgeCommandHandler : AbstractCommandHandler {
+public:
+    explicit SetWatchOnEdgeCommandHandler(GraphDebugger* graphDebugger) : AbstractCommandHandler(graphDebugger) {}
+    void execute(istringstream& inputStream) override {
+        int from, to;
+        inputStream >> from >> to;
+        if(inputStream.fail())
+            throw InputErrorException(json({{"success", false}, {"error", "wrong input"}}).dump());
+        else this->graphDebugger->setWatchOnEdge(from, to);
     }
 };
 
@@ -137,7 +188,21 @@ public:
     void execute(istringstream& inputStream) override {
         int vertexIndex;
         inputStream >> vertexIndex;
-        this->graphDebugger->removeWatchFromVertex(vertexIndex);
+        if(inputStream.fail())
+            throw InputErrorException(json({{"success", false}, {"error", "wrong input"}}).dump());
+        else this->graphDebugger->removeWatchFromVertex(vertexIndex);
+    }
+};
+
+class RemoveWatchFromEdgeCommandHandler : AbstractCommandHandler {
+public:
+    explicit RemoveWatchFromEdgeCommandHandler(GraphDebugger* graphDebugger) : AbstractCommandHandler(graphDebugger) {}
+    void execute(istringstream& inputStream) override {
+        int from, to;
+        inputStream >> from >> to;
+        if(inputStream.fail())
+            throw InputErrorException(json({{"success", false}, {"error", "wrong input"}}).dump());
+        else this->graphDebugger->removeWatchFromEdge(from, to);
     }
 };
 
@@ -146,7 +211,7 @@ class ExitCommandHandler : AbstractCommandHandler {
 public:
     explicit ExitCommandHandler(GraphDebugger* graphDebugger) : AbstractCommandHandler(graphDebugger) {}
     void execute(istringstream& input) override {
-        throw ExitException("user interrupt");
+        throw ExitException(json({{"success", true}}).dump());
     }
 };
 
@@ -171,16 +236,18 @@ public:
                 {"continue",   (AbstractCommandHandler*) new ContinueCommandHandler(graphDebugger)},
                 {"next",       (AbstractCommandHandler*) new NextCommandHandler(graphDebugger)},
                 {"set-watch-on-vertex",  (AbstractCommandHandler*) new SetWatchOnVertexCommandHandler(graphDebugger)},
+                {"set-watch-on-edge", (AbstractCommandHandler*) new SetWatchOnEdgeCommandHandler(graphDebugger)},
                 {"remove-watch-from-vertex", (AbstractCommandHandler*) new RemoveWatchFromVertexCommandHandler(graphDebugger)},
+                {"remove-watch-from-edge", (AbstractCommandHandler*) new RemoveWatchFromEdgeCommandHandler(graphDebugger)},
                 {"set-target", (AbstractCommandHandler*) new SetTargetCommandHandler(graphDebugger)},
                 {"start",      (AbstractCommandHandler*) new StartCommandHandler(graphDebugger)},
                 {"set-graph",  (AbstractCommandHandler*) new SetGraphCommandHandler(graphDebugger)},
                 {"set-bkpt", (AbstractCommandHandler*) new SetBkptCommandHandler(graphDebugger)},
                 {"attach-to-vertices", (AbstractCommandHandler*) new AttachToVerticesCommandHandler(graphDebugger)},
+                {"attach-to-edges", (AbstractCommandHandler*) new AttachToEdgesCommandHandler(graphDebugger)},
                 {"detach-from-vertices", (AbstractCommandHandler*) new DetachFromVerticesCommandHandler(graphDebugger)},
-                //todo: remove this later
-                {"debug", (AbstractCommandHandler*) new DebugCommandHandler(graphDebugger)}
-                //{"dump",       (AbstractCommandHandler*) new DumpCommandHandler(graphDebugger)},
+                {"detach-from-edges", (AbstractCommandHandler*) new DetachFromEdgesCommandHandler(graphDebugger)},
+
         };
     }
 

@@ -39,6 +39,7 @@ int main() {
     }
 
     int** graph = new int*[n];
+    int** loads = new int*[n];
     int* used = new int[n];
     int* permutation = new int[n];
     permutation[0] = 2;
@@ -46,6 +47,7 @@ int main() {
     permutation[2] = 3;
     permutation[3] = 1;
     permutation[4] = 5;
+
 
     toWatch[2] = 5;
 
@@ -66,17 +68,21 @@ int main() {
     int buf;
     for(int i = 0; i < 5; i++){
         *(graph + i) = new int[n];
+        *(loads + i) = new int[n];
         for(int j = 0; j < 5; j++){
             cin >> buf;
             *(*(graph + i) + j) = buf;
+            *(*(loads + i) + j) = (buf*2+3)%(i+1);
         }
     }
 
     dfs(graph, used, 0, n);
 
+    loads[1][2] = 78;
+
     tests[2] = {55, 55};
 
-    show(graph, n);
+    show(loads, n);
     *(tests+2) = {11, 11};
 
     cout << "incremented " << endl;
