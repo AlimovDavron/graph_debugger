@@ -82,10 +82,19 @@ int main() {
 
     tests[2] = {55, 55};
 
+    loads[1][2] = 100;
+
+
     show(loads, n);
     *(tests+2) = {11, 11};
 
+    loads[1][2] = 100;
+
+
     cout << "incremented " << endl;
+
+    loads[1][2] = 100;
+
     show(graph, n);
 
     return 0;

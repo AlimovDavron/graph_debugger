@@ -438,17 +438,6 @@ void GraphDebugger::removeWatchFromVertex(int vertexIndex) {
     }
 }
 
-
-// todo: remove this later
-void GraphDebugger::debug() {
-    std::vector<json> responses = this->translator->
-            executeCommand("-break-insert 12312312312312312", 'h');
-
-    for(const auto& response: responses){
-        cout << response << endl;
-    }
-}
-
 void GraphDebugger::setWatchOnEdgeHandler(int from, int to) {
     if(this->beingWatchedEdges.find({from, to}) != this->beingWatchedEdges.end())
         return;
@@ -513,11 +502,6 @@ void GraphDebugger::attachToEdges(std::string variableName) {
     }
 }
 
-void GraphDebugger::detachFromEdges(std::string variableName) {
-    if(checkTarget() && checkStart() && checkGraph())
-        sendResponse(detachFromEdgesHandler(variableName));
-}
-
 void GraphDebugger::removeWatchFromEdgeHandler(int from, int to) {
     for(const auto& load: this->edgeLoads) {
         int watchId = this->watchIdByEdge[load.variableName][from][to];
@@ -530,7 +514,7 @@ void GraphDebugger::removeWatchFromEdgeHandler(int from, int to) {
 
 void GraphDebugger::removeWatchFromEdge(int from, int to) {
     if(checkTarget() && checkStart() && checkGraph()) {
-        removeWatchFromEdge(from, to);
+        removeWatchFromEdgeHandler(from, to);
         sendResponse(responseUtils::createBinaryResponse(true, "done"));
     }
 }
@@ -549,6 +533,12 @@ json GraphDebugger::detachFromEdgesHandler(std::string variableName) {
     }
 
     return responseUtils::createSetGraphResponse(true, getGraph());
+}
+
+
+void GraphDebugger::detachFromEdges(std::string variableName) {
+    if(checkTarget() && checkStart() && checkGraph())
+        sendResponse(detachFromEdgesHandler(variableName));
 }
 
 

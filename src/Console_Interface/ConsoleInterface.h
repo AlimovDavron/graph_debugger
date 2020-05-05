@@ -140,7 +140,7 @@ public:
         inputStream >> array;
         if(inputStream.fail())
             throw InputErrorException(json({{"success", false}, {"error", "wrong input"}}).dump());
-        else this->graphDebugger->detachFromVertices(array);
+        else this->graphDebugger->detachFromEdges(array);
     }
 };
 
@@ -215,14 +215,6 @@ public:
     }
 };
 
-class DebugCommandHandler : AbstractCommandHandler {
-public:
-    explicit DebugCommandHandler(GraphDebugger* graphDebugger) : AbstractCommandHandler(graphDebugger) {}
-    void execute(istringstream& input) override {
-        this->graphDebugger->debug();
-    }
-};
-
 const std::string FIFO_FILE = "graph_debugger";
 
 class ConsoleInterface {
@@ -246,8 +238,7 @@ public:
                 {"attach-to-vertices", (AbstractCommandHandler*) new AttachToVerticesCommandHandler(graphDebugger)},
                 {"attach-to-edges", (AbstractCommandHandler*) new AttachToEdgesCommandHandler(graphDebugger)},
                 {"detach-from-vertices", (AbstractCommandHandler*) new DetachFromVerticesCommandHandler(graphDebugger)},
-                {"detach-from-edges", (AbstractCommandHandler*) new DetachFromEdgesCommandHandler(graphDebugger)},
-
+                {"detach-from-edges", (AbstractCommandHandler*) new DetachFromEdgesCommandHandler(graphDebugger)}
         };
     }
 

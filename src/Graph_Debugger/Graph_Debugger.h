@@ -68,7 +68,6 @@ public:
     void next();
     void setGraph(std::string, int);
     void setBkpt(int);
-    void debug();
     void attachToVertices(std::string);
     void attachToEdges(std::string);
     void detachFromVertices(std::string);
