@@ -82,7 +82,7 @@ int main() {
 
     tests[2] = {55, 55};
 
-    loads[1][2] = 100;
+    loads[1][2] = 121;
 
 
     show(loads, n);

@@ -18,6 +18,11 @@ void GraphDebugger::dump(std::string path) {
         for (int i = 0; i < this->numberOfVertices; i++) {
             setWatchOnVertexHandler(i);
         }
+        for (int i = 0; i < this->numberOfVertices; i++){
+            for(int j = 0; j < this->numberOfVertices; j++){
+                setWatchOnEdgeHandler(i, j);
+            }
+        }
         try {
             while (true) {
                 dumpStream << continueHandler() << endl;
