@@ -23,6 +23,13 @@ protected:
                str.compare(str.size() - suffix.size(), suffix.size(), suffix) == 0;
     }
 
+    std::string flushGDBMIResponse();
+
+    std::vector<json> readGDMIResponseUntilHash(int hash);
+    std::vector<json> readGDMIResponseUntilStop();
+
+    static std::vector<std::string> split(std::string a, const std::string& delimiter);
+
 public:
     GDB_MI_Translator(FILE* gdb, int fileDescriptorFIFO):gdb(gdb), fileDescriptorFIFO(fileDescriptorFIFO) {
         flushGDBMIResponse();
@@ -30,13 +37,6 @@ public:
         flushGDBMIResponse();
         outputParser = (AbstractGDBMIOutputParser*)new PyGDBMIParser();
     }
-
-    std::string flushGDBMIResponse();
-
-    std::vector<json> readGDMIResponseUntilHash(int hash);
-    std::vector<json> readGDMIResponseUntilStop();
-
-    static std::vector<std::string> split(std::string a, const std::string& delimiter);
 
     std::vector<json> executeCommand(std::string command, char mode);
     void executeCommandNoJSON(std::string command);

@@ -16,8 +16,8 @@
 #include <sys/types.h>
 #include <fcntl.h>
 #include "../../json.hpp"
-#include "../Graph_Debugger/Graph_Debugger.h"
-#include "../Graph_Debugger/GraphDebuggerExceptions.h"
+#include "../GraphDebugger/GraphDebugger.h"
+#include "../GraphDebugger/GraphDebuggerExceptions.h"
 #include "ConsoleInterfaceExceptions.h"
 
 using namespace std;

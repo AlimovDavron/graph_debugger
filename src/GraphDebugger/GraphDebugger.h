@@ -2,8 +2,8 @@
 // Created by alimovdavron on 11/12/19.
 //
 
-#ifndef CORE_GRAPH_DEBUGGER_H
-#define CORE_GRAPH_DEBUGGER_H
+#ifndef CORE_GRAPHDEBUGGER_H
+#define CORE_GRAPHDEBUGGER_H
 
 #include <iostream>
 #include <set>
@@ -28,7 +28,6 @@ private:
     std::map<int, EdgeWatch> edgeByWatchId;
     std::map<std::string, std::vector<vector<int>>> watchIdByEdge;
 
-    bool isVariableInLocals(std::string variableName);
     bool checkTarget();
     bool checkStart();
     bool checkGraph();
@@ -79,4 +78,4 @@ public:
 
 };
 
-#endif //CORE_GRAPH_DEBUGGER_H
+#endif //CORE_GRAPHDEBUGGER_H

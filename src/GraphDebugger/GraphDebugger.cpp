@@ -3,7 +3,7 @@
 //
 
 #include <fstream>
-#include "Graph_Debugger.h"
+#include "GraphDebugger.h"
 #include "../utils/responseUtils.h"
 using namespace responseUtils;
 
