@@ -11,6 +11,7 @@ cmake --build . --target core
 ## build example
 ```bash
 g++ -g ../example.cpp -o example
+cp ../graph .
 ```
 
 ## Try to debug example program
