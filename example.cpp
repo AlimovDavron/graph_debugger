@@ -48,7 +48,6 @@ int main() {
     permutation[3] = 1;
     permutation[4] = 5;
 
-
     toWatch[2] = 5;
 
     Test* tests = new Test[n];
@@ -56,13 +55,8 @@ int main() {
         tests[i] = {i, i+1};
     }
 
-
     for(int i = 0; i < n; i++){
         used[i] = 0;
-    }
-
-    for(int i = 0; i < n; i++){
-        cout << tests[i].a << " " << tests[i].b << endl;
     }
 
     int buf;
@@ -84,14 +78,10 @@ int main() {
 
     loads[1][2] = 121;
 
-
     show(loads, n);
     *(tests+2) = {11, 11};
 
     loads[1][2] = 100;
-
-
-    cout << "incremented " << endl;
 
     loads[1][2] = 100;
 

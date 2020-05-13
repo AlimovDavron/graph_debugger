@@ -10,7 +10,7 @@ cmake --build . --target core
 
 ## build example
 ```bash
-g++ -g ../example.cpp -o example
+g++ -g ../example.cpp -fdebug-prefix-map=..=$(readlink -f ..) -o example
 cp ../graph .
 ```
 
