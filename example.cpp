@@ -1,4 +1,5 @@
-#include <bits/stdc++.h>
+#include <iostream>
+#include <vector>
 using namespace std;
 
 struct Test{
@@ -70,7 +71,6 @@ int main() {
         }
     }
 
-    dfs(graph, used, 0, n);
 
     loads[1][2] = 78;
 
@@ -78,14 +78,14 @@ int main() {
 
     loads[1][2] = 121;
 
-    show(loads, n);
+    dfs(graph, used, 0, n);
+
     *(tests+2) = {11, 11};
 
     loads[1][2] = 100;
 
     loads[1][2] = 100;
 
-    show(graph, n);
 
     return 0;
 }
