@@ -138,7 +138,8 @@ json GraphDebugger::handleMovementResponses(std::vector<json>& responses) {
 }
 
 json GraphDebugger::startHandler() {
-    std::vector<json> responses = this->translator->executeCommand("-exec-run --start", 's');
+    std::vector<json> responses = this->translator->executeCommand("-break-insert main", 'h');
+    responses = this->translator->executeCommand("run < input", 's');
     return handleMovementResponses(responses);
 }
 
